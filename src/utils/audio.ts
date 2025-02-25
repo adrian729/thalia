@@ -26,7 +26,7 @@ export function playSynth({
   if (frequency < 20 || frequency > 20000) currentFrequency = 440;
 
   const gainControl = audioContext.createGain();
-  gainControl.gain.setValueAtTime(0.4, currentTime);
+  gainControl.gain.setValueAtTime(0.8, currentTime);
   gainControl.gain.exponentialRampToValueAtTime(0.001, currentTime + 0.5);
   gainControl.connect(destination);
 
@@ -221,6 +221,153 @@ export function playHihat({
   hihatGain.gain.exponentialRampToValueAtTime(1, currentTime + 0.02);
   hihatGain.gain.exponentialRampToValueAtTime(0.3, currentTime + 0.03);
   hihatGain.gain.exponentialRampToValueAtTime(0.00001, currentTime + 0.3);
+}
+
+export function playCymbal1({
+  audioContext,
+  destination,
+}: {
+  audioContext: AudioContext;
+  destination: AudioNode;
+}) {
+  // Hihat as described in http://joesul.li/van/synthesizing-hi-hats/
+  const fundamental = 50 + 1 * Math.random();
+  const ratios = [2, 3, 4.16, 5.43, 6.79, 8.21];
+
+  const currentTime = audioContext.currentTime;
+
+  const gainControl = audioContext.createGain();
+  gainControl.gain.setValueAtTime(2, currentTime);
+  gainControl.connect(destination);
+
+  const hihatGain = audioContext.createGain();
+
+  // Bandpass
+  const bandpass = audioContext.createBiquadFilter();
+  bandpass.type = "bandpass";
+  bandpass.frequency.value = 8000;
+  // Highpass
+  const highpass = audioContext.createBiquadFilter();
+  highpass.type = "highpass";
+  highpass.frequency.value = 7000;
+  // Connect graph
+  bandpass.connect(highpass);
+  highpass.connect(hihatGain);
+  hihatGain.connect(gainControl);
+
+  // Oscillators
+  ratios.forEach((ratio) => {
+    const osc = audioContext.createOscillator();
+    osc.type = "square";
+    osc.frequency.value = fundamental * ratio;
+    osc.connect(bandpass);
+    osc.start(currentTime);
+    osc.stop(currentTime + 2);
+  });
+
+  // Volume envelope
+  hihatGain.gain.setValueAtTime(0.00001, currentTime);
+  hihatGain.gain.exponentialRampToValueAtTime(1, currentTime + 0.02);
+  hihatGain.gain.exponentialRampToValueAtTime(0.3, currentTime + 0.03);
+  hihatGain.gain.exponentialRampToValueAtTime(0.00001, currentTime + 1.5);
+}
+
+export function playCymbal2({
+  audioContext,
+  destination,
+}: {
+  audioContext: AudioContext;
+  destination: AudioNode;
+}) {
+  // Hihat as described in http://joesul.li/van/synthesizing-hi-hats/
+  const fundamental = 100 + 2 * Math.random();
+  const ratios = [2, 3, 4.16, 5.43, 6.79, 8.21];
+
+  const currentTime = audioContext.currentTime;
+
+  const gainControl = audioContext.createGain();
+  gainControl.gain.setValueAtTime(2, currentTime);
+  gainControl.connect(destination);
+
+  const hihatGain = audioContext.createGain();
+
+  // Bandpass
+  const bandpass = audioContext.createBiquadFilter();
+  bandpass.type = "bandpass";
+  bandpass.frequency.value = 10000;
+  // Highpass
+  const highpass = audioContext.createBiquadFilter();
+  highpass.type = "highpass";
+  highpass.frequency.value = 7000;
+  // Connect graph
+  bandpass.connect(highpass);
+  highpass.connect(hihatGain);
+  hihatGain.connect(gainControl);
+
+  // Oscillators
+  ratios.forEach((ratio) => {
+    const osc = audioContext.createOscillator();
+    osc.type = "square";
+    osc.frequency.value = fundamental * ratio;
+    osc.connect(bandpass);
+    osc.start(currentTime);
+    osc.stop(currentTime + 2);
+  });
+
+  // Volume envelope
+  hihatGain.gain.setValueAtTime(0.00001, currentTime);
+  hihatGain.gain.exponentialRampToValueAtTime(1, currentTime + 0.02);
+  hihatGain.gain.exponentialRampToValueAtTime(0.3, currentTime + 0.03);
+  hihatGain.gain.exponentialRampToValueAtTime(0.00001, currentTime + 1.5);
+}
+
+export function playCymbal3({
+  audioContext,
+  destination,
+}: {
+  audioContext: AudioContext;
+  destination: AudioNode;
+}) {
+  // Hihat as described in http://joesul.li/van/synthesizing-hi-hats/
+  const fundamental = 20 + 1 * Math.random();
+  const ratios = [2, 3, 4.16, 5.43, 6.79, 8.21];
+
+  const currentTime = audioContext.currentTime;
+
+  const gainControl = audioContext.createGain();
+  gainControl.gain.setValueAtTime(2, currentTime);
+  gainControl.connect(destination);
+
+  const hihatGain = audioContext.createGain();
+
+  // Bandpass
+  const bandpass = audioContext.createBiquadFilter();
+  bandpass.type = "bandpass";
+  bandpass.frequency.value = 5000;
+  // Highpass
+  const highpass = audioContext.createBiquadFilter();
+  highpass.type = "highpass";
+  highpass.frequency.value = 3000;
+  // Connect graph
+  bandpass.connect(highpass);
+  highpass.connect(hihatGain);
+  hihatGain.connect(gainControl);
+
+  // Oscillators
+  ratios.forEach((ratio) => {
+    const osc = audioContext.createOscillator();
+    osc.type = "square";
+    osc.frequency.value = fundamental * ratio;
+    osc.connect(bandpass);
+    osc.start(currentTime);
+    osc.stop(currentTime + 3);
+  });
+
+  // Volume envelope
+  hihatGain.gain.setValueAtTime(0.00001, currentTime);
+  hihatGain.gain.exponentialRampToValueAtTime(1, currentTime + 0.02);
+  hihatGain.gain.exponentialRampToValueAtTime(0.3, currentTime + 0.03);
+  hihatGain.gain.exponentialRampToValueAtTime(0.00001, currentTime + 2.5);
 }
 
 export function playTom1({

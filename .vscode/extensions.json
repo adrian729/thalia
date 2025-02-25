@@ -1,0 +1,12 @@
+{
+    "recommendations": [
+        "bradlc.vscode-tailwindcss",
+        "oderwat.indent-rainbow",
+        "eamodio.gitlens",
+        "esbenp.prettier-vscode",
+        "formulahendry.auto-complete-tag",
+        "aaron-bond.better-comments",
+        "ecmel.vscode-html-css",
+        "dbaeumer.vscode-eslint"
+    ]
+}
