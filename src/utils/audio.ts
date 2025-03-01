@@ -16,10 +16,12 @@ export function playSynth({
   frequency,
   audioContext,
   destination,
+  oscillatorTypes,
 }: {
   frequency: number;
   audioContext: AudioContext;
   destination: AudioNode;
+  oscillatorTypes: OscillatorType[];
 }) {
   const currentTime = audioContext.currentTime;
   let currentFrequency = frequency;
@@ -30,26 +32,60 @@ export function playSynth({
   gainControl.gain.exponentialRampToValueAtTime(0.001, currentTime + 0.5);
   gainControl.connect(destination);
 
-  const oscillator = audioContext.createOscillator();
-  oscillator.type = "sine";
-  oscillator.frequency.setValueAtTime(currentFrequency, currentTime);
-  oscillator.connect(gainControl);
+  if (oscillatorTypes.includes("sine")) {
+    const oscillator = audioContext.createOscillator();
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(currentFrequency, currentTime);
+    oscillator.connect(gainControl);
 
-  const squareGain = audioContext.createGain();
-  squareGain.gain.setValueAtTime(0.1, currentTime);
-  gainControl.gain.exponentialRampToValueAtTime(0.001, currentTime + 0.5);
-  squareGain.connect(gainControl);
+    oscillator.start(currentTime);
+    oscillator.stop(currentTime + 0.5);
+  }
 
-  const squareOscillator = audioContext.createOscillator();
-  squareOscillator.type = "square";
-  squareOscillator.frequency.setValueAtTime(currentFrequency, currentTime);
-  squareOscillator.connect(squareGain);
+  if (oscillatorTypes.includes("square")) {
+    const squareGain = audioContext.createGain();
+    squareGain.gain.setValueAtTime(0.1, currentTime);
+    squareGain.gain.exponentialRampToValueAtTime(0.001, currentTime + 0.5);
+    squareGain.connect(gainControl);
 
-  oscillator.start(currentTime);
-  oscillator.stop(currentTime + 0.5);
+    const squareOscillator = audioContext.createOscillator();
+    squareOscillator.type = "square";
+    squareOscillator.frequency.setValueAtTime(currentFrequency, currentTime);
+    squareOscillator.connect(squareGain);
 
-  squareOscillator.start(currentTime);
-  squareOscillator.stop(currentTime + 0.5);
+    squareOscillator.start(currentTime);
+    squareOscillator.stop(currentTime + 0.5);
+  }
+
+  if (oscillatorTypes.includes("sawtooth")) {
+    const sawtoothGain = audioContext.createGain();
+    sawtoothGain.gain.setValueAtTime(0.1, currentTime);
+    sawtoothGain.gain.exponentialRampToValueAtTime(0.001, currentTime + 0.5);
+    sawtoothGain.connect(gainControl);
+
+    const sawtoothOscillator = audioContext.createOscillator();
+    sawtoothOscillator.type = "sawtooth";
+    sawtoothOscillator.frequency.setValueAtTime(currentFrequency, currentTime);
+    sawtoothOscillator.connect(sawtoothGain);
+
+    sawtoothOscillator.start(currentTime);
+    sawtoothOscillator.stop(currentTime + 0.5);
+  }
+
+  if (oscillatorTypes.includes("triangle")) {
+    const triangleGain = audioContext.createGain();
+    triangleGain.gain.setValueAtTime(0.5, currentTime);
+    triangleGain.gain.exponentialRampToValueAtTime(0.001, currentTime + 0.5);
+    triangleGain.connect(gainControl);
+
+    const triangleOscillator = audioContext.createOscillator();
+    triangleOscillator.type = "triangle";
+    triangleOscillator.frequency.setValueAtTime(currentFrequency, currentTime);
+    triangleOscillator.connect(triangleGain);
+
+    triangleOscillator.start(currentTime);
+    triangleOscillator.stop(currentTime + 0.5);
+  }
 }
 
 export function playKick({
