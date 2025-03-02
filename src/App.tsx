@@ -5,7 +5,7 @@ import ThaliaPad from "./synth-pad/ThaliaPad";
 
 function App() {
   const mainAudioContext = useContext(MainAudioContext);
-  const { audioContext, mainNode } = mainAudioContext?.state ?? {};
+  const { audioContext, mainNode } = mainAudioContext.state;
 
   if (!mainAudioContext?.state || !audioContext || !mainNode) {
     return (

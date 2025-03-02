@@ -1,5 +1,5 @@
 import { ClassValue } from "clsx";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { MainAudioContext } from "../audio-context/MainAudioContext";
 import { cn } from "../utils/styles";
 import {
@@ -13,6 +13,7 @@ import {
   playTom2,
   playTom3,
 } from "../utils/audio";
+import { useReverb } from "../audio-context/useReverb";
 
 type DrumPadConfigItem = {
   playInstrument: ({
@@ -84,21 +85,48 @@ const drumPadConfig: DrumPadConfigItem[] = [
 ] as const;
 
 export default function DrumPad() {
+  const mainAudioContext = useContext(MainAudioContext);
+  const { audioContext, mainNode } = mainAudioContext.state;
+  const destinationRef = useRef(new GainNode(audioContext, { gain: 1 }));
+  const { dry, wet } = useReverb({
+    irPath: "IR/IR_basement.wav",
+    dryGain: 0.5,
+    wetGain: 0.06,
+    destination: mainNode,
+    audioContext: audioContext,
+  });
+
+  useEffect(() => {
+    destinationRef.current.connect(dry);
+    destinationRef.current.connect(wet);
+  }, [destinationRef, dry, wet]);
+
   return (
-    <div className='w-xs sm:w-xl p-6 border-2 border-gray-900 grid grid-cols-3 gap-4'>
+    <div className='w-xs sm:w-xl p-6 border-2 border-gray-400 rounded-xl grid grid-cols-3 gap-4'>
       {drumPadConfig.map((configItem, index) => (
-        <DrumPadButton key={index} configItem={configItem} />
+        <DrumPadButton
+          key={index}
+          configItem={configItem}
+          destination={destinationRef.current}
+          audioContext={audioContext}
+        />
       ))}
     </div>
   );
 }
 
-function DrumPadButton({ configItem }: { configItem: DrumPadConfigItem }) {
-  const mainAudioContext = useContext(MainAudioContext);
+function DrumPadButton({
+  configItem,
+  destination,
+  audioContext,
+}: {
+  configItem: DrumPadConfigItem;
+  destination: AudioNode;
+  audioContext: AudioContext;
+}) {
   const [isPlaying, setIsPlaying] = useState(false);
-  const { audioContext, mainNode: destination } = mainAudioContext?.state ?? {};
-  const { playInstrument, keys, extraClasses, playingClasses } = configItem;
 
+  const { playInstrument, keys, extraClasses, playingClasses } = configItem;
   const keyDownHandler = useCallback(
     (event: KeyboardEvent) => {
       if (audioContext && destination && keys.includes(event.key)) {
@@ -134,7 +162,7 @@ function DrumPadButton({ configItem }: { configItem: DrumPadConfigItem }) {
     <button
       type='button'
       className={cn([
-        "cursor-pointer w-full aspect-square bg-gray-300",
+        "cursor-pointer w-full aspect-square bg-gray-300 rounded",
         extraClasses,
         isPlaying && playingClasses,
       ])}

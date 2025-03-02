@@ -9,20 +9,16 @@ export function useAudioSetup({
   const audioContextRef = useRef<AudioContext>(
     new AudioContext({ sampleRate })
   );
-  const mainNodeRef = useRef<AudioNode>(
+  const gainNodeRef = useRef<GainNode>(
     new GainNode(audioContextRef.current, { gain: 1 })
   );
 
   useEffect(() => {
-    const audioContext = audioContextRef?.current;
-    const mainNode = mainNodeRef?.current;
-    if (audioContextRef.current && mainNode) {
-      mainNode.connect(audioContext.destination);
-    }
-  }, [audioContextRef, mainNodeRef]);
+    gainNodeRef.current.connect(audioContextRef.current.destination);
+  }, [gainNodeRef, audioContextRef]);
 
   return {
     audioContext: audioContextRef.current,
-    mainNode: mainNodeRef.current,
+    mainNode: gainNodeRef.current,
   };
 }

@@ -12,79 +12,99 @@ export function createNoiseBuffer(audioContext: AudioContext) {
   return buffer;
 }
 
-export function playSynth({
+function playSynthOscillator({
+  gain = 1.0,
   frequency,
+  oscillatorType = "sine",
+  duration = 0.5,
   audioContext,
   destination,
-  oscillatorTypes,
 }: {
+  gain?: number;
   frequency: number;
+  oscillatorType?: OscillatorType;
+  duration?: number;
   audioContext: AudioContext;
   destination: AudioNode;
-  oscillatorTypes: OscillatorType[];
 }) {
   const currentTime = audioContext.currentTime;
-  let currentFrequency = frequency;
-  if (frequency < 20 || frequency > 20000) currentFrequency = 440;
 
-  const gainControl = audioContext.createGain();
-  gainControl.gain.setValueAtTime(0.8, currentTime);
-  gainControl.gain.exponentialRampToValueAtTime(0.001, currentTime + 0.5);
+  const oscGain = new GainNode(audioContext, { gain });
+  const osc = new OscillatorNode(audioContext, {
+    frequency,
+    type: oscillatorType,
+  });
+
+  osc.connect(oscGain);
+  oscGain.connect(destination);
+
+  oscGain.gain.exponentialRampToValueAtTime(0.001, currentTime + duration);
+  osc.start(currentTime);
+  osc.stop(currentTime + duration);
+}
+
+export function playSynth({
+  gain = 0.8,
+  frequency,
+  duration = 0.5,
+  audioContext,
+  destination,
+  oscillatorTypes = ["sine", "square", "sawtooth", "triangle"],
+}: {
+  gain?: number;
+  frequency: number;
+  duration?: number;
+  audioContext: AudioContext;
+  destination: AudioNode;
+  oscillatorTypes?: OscillatorType[];
+}) {
+  const currentTime = audioContext.currentTime;
+  const currentFrequency = clampFrequency(frequency);
+
+  const gainControl = new GainNode(audioContext, { gain });
+  gainControl.gain.exponentialRampToValueAtTime(0.001, currentTime + duration);
   gainControl.connect(destination);
 
   if (oscillatorTypes.includes("sine")) {
-    const oscillator = audioContext.createOscillator();
-    oscillator.type = "sine";
-    oscillator.frequency.setValueAtTime(currentFrequency, currentTime);
-    oscillator.connect(gainControl);
-
-    oscillator.start(currentTime);
-    oscillator.stop(currentTime + 0.5);
+    playSynthOscillator({
+      frequency: currentFrequency,
+      duration,
+      audioContext,
+      destination: gainControl,
+    });
   }
 
   if (oscillatorTypes.includes("square")) {
-    const squareGain = audioContext.createGain();
-    squareGain.gain.setValueAtTime(0.1, currentTime);
-    squareGain.gain.exponentialRampToValueAtTime(0.001, currentTime + 0.5);
-    squareGain.connect(gainControl);
-
-    const squareOscillator = audioContext.createOscillator();
-    squareOscillator.type = "square";
-    squareOscillator.frequency.setValueAtTime(currentFrequency, currentTime);
-    squareOscillator.connect(squareGain);
-
-    squareOscillator.start(currentTime);
-    squareOscillator.stop(currentTime + 0.5);
+    playSynthOscillator({
+      gain: 0.1,
+      frequency: currentFrequency,
+      oscillatorType: "square",
+      duration,
+      audioContext,
+      destination: gainControl,
+    });
   }
 
   if (oscillatorTypes.includes("sawtooth")) {
-    const sawtoothGain = audioContext.createGain();
-    sawtoothGain.gain.setValueAtTime(0.1, currentTime);
-    sawtoothGain.gain.exponentialRampToValueAtTime(0.001, currentTime + 0.5);
-    sawtoothGain.connect(gainControl);
-
-    const sawtoothOscillator = audioContext.createOscillator();
-    sawtoothOscillator.type = "sawtooth";
-    sawtoothOscillator.frequency.setValueAtTime(currentFrequency, currentTime);
-    sawtoothOscillator.connect(sawtoothGain);
-
-    sawtoothOscillator.start(currentTime);
-    sawtoothOscillator.stop(currentTime + 0.5);
+    playSynthOscillator({
+      gain: 0.1,
+      frequency: currentFrequency,
+      oscillatorType: "sawtooth",
+      duration,
+      audioContext,
+      destination: gainControl,
+    });
   }
 
   if (oscillatorTypes.includes("triangle")) {
-    const triangleGain = audioContext.createGain();
-    triangleGain.gain.setValueAtTime(0.5, currentTime);
-    triangleGain.gain.exponentialRampToValueAtTime(0.001, currentTime + 0.5);
-    triangleGain.connect(gainControl);
-
-    const triangleOscillator = audioContext.createOscillator();
-    triangleOscillator.type = "triangle";
-    triangleOscillator.frequency.setValueAtTime(currentFrequency, currentTime);
-    triangleOscillator.connect(triangleGain);
-
-    triangleOscillator.start(currentTime);
-    triangleOscillator.stop(currentTime + 0.5);
+    playSynthOscillator({
+      gain: 0.5,
+      frequency: currentFrequency,
+      oscillatorType: "triangle",
+      duration,
+      audioContext,
+      destination: gainControl,
+    });
   }
 }
 
@@ -529,4 +549,10 @@ export function playTom3({
 
   noiseSource.start(currentTime);
   noiseSource.stop(currentTime + 1.5);
+}
+
+export function clampFrequency(frequency: number): number {
+  if (frequency < 20) return 20;
+  if (frequency > 20000) return 20000;
+  return frequency;
 }

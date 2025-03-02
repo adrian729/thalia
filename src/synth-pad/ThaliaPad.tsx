@@ -5,15 +5,18 @@ import {
   createContext,
   Dispatch,
   JSX,
+  PropsWithChildren,
   SetStateAction,
   SVGProps,
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import { notes } from "../utils/notes";
 import { playSynth } from "../utils/audio";
+import { useReverb } from "../audio-context/useReverb";
 
 type ThaliaPadConfigItem = {
   id: number;
@@ -139,37 +142,39 @@ function mapIdToThaliaPadButton(
   return (
     <ThaliaPadButton
       key={midiId}
-      frequency={notes[midiId + 24].frequency}
+      frequency={notes[midiId + 36].frequency}
       configItem={configItem}
       keys={keys}
-      hasHelper={true}
     />
   );
 }
 
+const defaultAudioContext = new AudioContext();
 type ThaliaPadBoardContextType = {
   oscillatorTypes: OscillatorType[];
   setOscillatorTypes: Dispatch<SetStateAction<OscillatorType[]>>;
   toggleWaveType: (oscillatorType: OscillatorType) => void;
+  helperEnabled: boolean;
+  setHelperEnabled: Dispatch<SetStateAction<boolean>>;
+  audioContext: AudioContext;
+  destination: AudioNode;
 };
 const ThaliaPadBoardContext = createContext<ThaliaPadBoardContextType>({
   oscillatorTypes: ["sine", "square", "sawtooth", "triangle"],
   setOscillatorTypes: () => {},
   toggleWaveType: () => {},
+  helperEnabled: false,
+  setHelperEnabled: () => {},
+  audioContext: defaultAudioContext,
+  destination: new GainNode(defaultAudioContext, { gain: 1 }),
 });
-
-export function ThaliaPadBoardProvider({
-  children,
-}: {
-  children: JSX.Element;
-}) {
+export function ThaliaPadBoardProvider({ children }: PropsWithChildren) {
   const [oscillatorTypes, setOscillatorTypes] = useState<OscillatorType[]>([
     "sine",
     "square",
     "sawtooth",
     "triangle",
   ]);
-
   const toggleWaveType = useCallback((oscillatorType: OscillatorType) => {
     setOscillatorTypes((prev) => {
       if (prev.includes(oscillatorType)) {
@@ -179,9 +184,35 @@ export function ThaliaPadBoardProvider({
     });
   }, []);
 
+  const [helperEnabled, setHelperEnabled] = useState(false);
+
+  const mainAudioContext = useContext(MainAudioContext);
+  const { audioContext, mainNode } = mainAudioContext.state;
+  const destinationRef = useRef(new GainNode(audioContext, { gain: 1 }));
+  const { dry, wet } = useReverb({
+    irPath: "IR/IR_basement.wav",
+    dryGain: 0.5,
+    wetGain: 0.05,
+    destination: mainNode,
+    audioContext: audioContext,
+  });
+
+  useEffect(() => {
+    destinationRef.current.connect(dry);
+    destinationRef.current.connect(wet);
+  }, [destinationRef, dry, wet]);
+
   return (
     <ThaliaPadBoardContext.Provider
-      value={{ oscillatorTypes, setOscillatorTypes, toggleWaveType }}
+      value={{
+        oscillatorTypes,
+        setOscillatorTypes,
+        toggleWaveType,
+        helperEnabled,
+        setHelperEnabled,
+        audioContext: audioContext!,
+        destination: destinationRef.current,
+      }}
     >
       {children}
     </ThaliaPadBoardContext.Provider>
@@ -192,7 +223,7 @@ function LeftThaliaPadBoard() {
   const { oscillatorTypes, toggleWaveType } = useContext(ThaliaPadBoardContext);
   return (
     <div className='flex'>
-      <div className='border-2 border-gray-900 rounded-tl-xl rounded-bl-[8rem]'>
+      <div className='border-2 border-gray-400 rounded-tl-xl rounded-bl-[8rem]'>
         <div className='w-fit pl-8 pr-4 pt-6 flex flex-nowrap gap-2'>
           {/* 2-/3-/6-/7- */}
           {[1, 3, 8, 10].map((midiId) =>
@@ -228,7 +259,7 @@ function LeftThaliaPadBoard() {
           </div>
         </div>
       </div>
-      <div className='py-8 bg-fuchsia-100 border-r-2 border-y-2 rounded-r-xl border-gray-900 px-4 grid grid-cols-1 justify-center items-center gap-4'>
+      <div className='py-8 bg-fuchsia-100 border-r-2 border-y-2 rounded-r-xl border-gray-400 px-4 grid grid-cols-1 justify-center items-center gap-4'>
         <button
           type='button'
           className={cn(
@@ -287,7 +318,7 @@ function RightThaliaPadBoard() {
   const { oscillatorTypes, toggleWaveType } = useContext(ThaliaPadBoardContext);
   return (
     <div className='flex'>
-      <div className='py-8 bg-blue-100 border-l-2 border-y-2 rounded-l-xl border-gray-900 px-4 grid grid-cols-1 justify-center items-center gap-4'>
+      <div className='py-8 bg-blue-100 border-l-2 border-y-2 rounded-l-xl border-gray-400 px-4 grid grid-cols-1 justify-center items-center gap-4'>
         <button
           type='button'
           className={cn(
@@ -338,7 +369,7 @@ function RightThaliaPadBoard() {
           </div>
         </button>
       </div>
-      <div className='border-2 border-gray-900 rounded-br-xl rounded-tr-[8rem]'>
+      <div className='border-2 border-gray-400 rounded-br-xl rounded-tr-[8rem]'>
         <div className='w-fit pr-8 pl-4 pt-6 flex flex-nowrap gap-2'>
           {/* '2-/'3-/'6-/'7- */}
           {[13, 15, 20, 22].map((midiId) =>
@@ -398,17 +429,14 @@ function ThaliaPadButton({
   frequency,
   configItem,
   keys,
-  hasHelper = false,
 }: {
   frequency: number;
   configItem: ThaliaPadConfigItem;
   keys: string[];
-  hasHelper: boolean;
 }) {
-  const mainAudioContext = useContext(MainAudioContext);
-  const { audioContext, mainNode: destination } = mainAudioContext?.state ?? {};
   const [isPlaying, setIsPlaying] = useState(false);
-  const { oscillatorTypes } = useContext(ThaliaPadBoardContext);
+  const { oscillatorTypes, helperEnabled, audioContext, destination } =
+    useContext(ThaliaPadBoardContext);
   const { extraClasses, playingClasses } = configItem;
 
   const keyDownHandler = useCallback(
@@ -484,7 +512,7 @@ function ThaliaPadButton({
         setIsPlaying(false);
       }}
     >
-      {hasHelper && `${keys[0]}`}
+      {helperEnabled && `${keys[0]}`}
     </button>
   );
 }
