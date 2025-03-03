@@ -11,12 +11,13 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
 import { notes } from "../utils/notes";
 import { playSynth } from "../utils/audio";
-import { useReverb } from "../audio-context/useReverb";
+import { IRType, useReverb } from "../audio-context/useReverb";
 
 type ThaliaPadConfigItem = {
   id: number;
@@ -151,24 +152,34 @@ function mapIdToThaliaPadButton(
 
 const defaultAudioContext = new AudioContext();
 type ThaliaPadBoardContextType = {
+  helperEnabled: boolean;
+  setHelperEnabled: Dispatch<SetStateAction<boolean>>;
   oscillatorTypes: OscillatorType[];
   setOscillatorTypes: Dispatch<SetStateAction<OscillatorType[]>>;
   toggleWaveType: (oscillatorType: OscillatorType) => void;
-  helperEnabled: boolean;
-  setHelperEnabled: Dispatch<SetStateAction<boolean>>;
+  reverbEnabled: boolean;
+  setReverbEnabled: Dispatch<SetStateAction<boolean>>;
+  toggleReverb: () => void;
+  setSelectedIR: (selectedIR: IRType) => void;
   audioContext: AudioContext;
   destination: AudioNode;
 };
 const ThaliaPadBoardContext = createContext<ThaliaPadBoardContextType>({
+  helperEnabled: false,
+  setHelperEnabled: () => {},
   oscillatorTypes: ["sine", "square", "sawtooth", "triangle"],
   setOscillatorTypes: () => {},
   toggleWaveType: () => {},
-  helperEnabled: false,
-  setHelperEnabled: () => {},
+  reverbEnabled: false,
+  setReverbEnabled: () => {},
+  toggleReverb: () => {},
+  setSelectedIR: () => {},
   audioContext: defaultAudioContext,
   destination: new GainNode(defaultAudioContext, { gain: 1 }),
 });
 export function ThaliaPadBoardProvider({ children }: PropsWithChildren) {
+  const [helperEnabled, setHelperEnabled] = useState(false);
+
   const [oscillatorTypes, setOscillatorTypes] = useState<OscillatorType[]>([
     "sine",
     "square",
@@ -184,15 +195,15 @@ export function ThaliaPadBoardProvider({ children }: PropsWithChildren) {
     });
   }, []);
 
-  const [helperEnabled, setHelperEnabled] = useState(false);
-
   const mainAudioContext = useContext(MainAudioContext);
   const { audioContext, mainNode } = mainAudioContext.state;
   const destinationRef = useRef(new GainNode(audioContext, { gain: 1 }));
-  const { dry, wet } = useReverb({
-    irPath: "IR/IR_basement.wav",
+  const [reverbEnabled, setReverbEnabled] = useState(true);
+  const wetGainValue = useMemo(() => 0.2, []);
+  const { dry, wet, setWetGain, setSelectedIR } = useReverb({
+    selectedIR: "basement",
     dryGain: 0.5,
-    wetGain: 0.05,
+    wetGain: wetGainValue,
     destination: mainNode,
     audioContext: audioContext,
   });
@@ -202,14 +213,25 @@ export function ThaliaPadBoardProvider({ children }: PropsWithChildren) {
     destinationRef.current.connect(wet);
   }, [destinationRef, dry, wet]);
 
+  const toggleReverb = useCallback(() => {
+    setReverbEnabled((prev) => {
+      setWetGain(prev ? 0 : wetGainValue);
+      return !prev;
+    });
+  }, [setWetGain, wetGainValue]);
+
   return (
     <ThaliaPadBoardContext.Provider
       value={{
+        helperEnabled,
+        setHelperEnabled,
         oscillatorTypes,
         setOscillatorTypes,
         toggleWaveType,
-        helperEnabled,
-        setHelperEnabled,
+        reverbEnabled,
+        setReverbEnabled,
+        toggleReverb,
+        setSelectedIR,
         audioContext: audioContext!,
         destination: destinationRef.current,
       }}
@@ -219,10 +241,132 @@ export function ThaliaPadBoardProvider({ children }: PropsWithChildren) {
   );
 }
 
-function LeftThaliaPadBoard() {
-  const { oscillatorTypes, toggleWaveType } = useContext(ThaliaPadBoardContext);
+const reverbs: (IRType | null)[] = [
+  null,
+  "basement",
+  "church",
+  "bathroom",
+  "pipe",
+];
+
+function LeftThaliaPadOptions() {
+  const {
+    oscillatorTypes,
+    toggleWaveType,
+    reverbEnabled,
+    toggleReverb,
+    setSelectedIR,
+  } = useContext(ThaliaPadBoardContext);
+  const [reverbIdx, setReverbIdx] = useState(1);
+  const currentReverb = useMemo(() => reverbs[reverbIdx], [reverbIdx]);
+
+  useEffect(() => {
+    if (
+      (reverbEnabled && !currentReverb) ||
+      (!reverbEnabled && currentReverb)
+    ) {
+      toggleReverb();
+    }
+  }, [currentReverb, reverbEnabled, toggleReverb]);
+
   return (
-    <div className='flex'>
+    <div className='p-4 w-fit bg-fuchsia-100 border-r-2 border-y-2 rounded-r-xl border-gray-400 flex flex-col gap-4 justify-between items-center'>
+      <div className='w-full grid grid-cols-2 gap-4 justify-center items-center'>
+        <div className='h-full flex flex-col justify-between items-center gap-2'>
+          <button
+            type='button'
+            className={cn(
+              "cursor-pointer w-9 aspect-square rounded bg-gray-300 text-gray-600",
+              oscillatorTypes.includes("sine") && "text-pink-900 bg-pink-300"
+            )}
+            onClick={() => toggleWaveType("sine")}
+          >
+            <div className='w-6 mx-auto'>
+              <SineWaveIcon />
+            </div>
+          </button>
+          <button
+            type='button'
+            className={cn(
+              "cursor-pointer w-9 aspect-square rounded text-gray-900 bg-gray-300",
+              oscillatorTypes.includes("square") &&
+                "text-green-900 bg-green-300"
+            )}
+            onClick={() => toggleWaveType("square")}
+          >
+            <div className='w-6 mx-auto'>
+              <SquareWaveIcon />
+            </div>
+          </button>
+          <button
+            type='button'
+            className={cn(
+              "cursor-pointer w-9 aspect-square rounded text-gray-900 bg-gray-300",
+              oscillatorTypes.includes("sawtooth") &&
+                "text-yellow-900 bg-yellow-300"
+            )}
+            onClick={() => toggleWaveType("sawtooth")}
+          >
+            <div className='w-6 mx-auto'>
+              <SawtoothWaveIcon />
+            </div>
+          </button>
+          <button
+            type='button'
+            className={cn(
+              "cursor-pointer w-9 aspect-square rounded text-gray-900 bg-gray-300",
+              oscillatorTypes.includes("triangle") && "text-red-900 bg-red-300"
+            )}
+            onClick={() => toggleWaveType("triangle")}
+          >
+            <div className='w-6 mx-auto'>
+              <TriangularWaveIcon />
+            </div>
+          </button>
+        </div>
+        <div className='h-full flex flex-col justify-between items-center gap-2'>
+          <button
+            type='button'
+            className={cn(
+              "cursor-pointer w-9 aspect-square rounded-full bg-gray-300 text-gray-600",
+              reverbEnabled &&
+                ((currentReverb === "basement" && "text-sky-900 bg-sky-300") ||
+                  (currentReverb === "church" && "text-teal-900 bg-teal-300") ||
+                  (currentReverb === "bathroom" &&
+                    "text-purple-900 bg-purple-300") ||
+                  (currentReverb === "pipe" && "text-pink-900 bg-pink-300"))
+            )}
+            onClick={() => {
+              setReverbIdx((prevIdx) => {
+                const newIdx = (prevIdx + 1) % reverbs.length;
+                const nextReverb = reverbs[newIdx];
+                if (nextReverb) {
+                  setSelectedIR(nextReverb);
+                }
+                return newIdx;
+              });
+            }}
+          >
+            <div className='w-5 mx-auto'>
+              <ReverbIcon />
+            </div>
+          </button>
+        </div>
+      </div>
+      <div className='w-full flex justify-end items-end'>
+        <div className='relative w-16 aspect-square rounded-full bg-gray-300'>
+          {/* // TODO: move "joystick" around, calc (x,y) coordinates and translate to absolute positions. 
+        // ! We need to take into account the "joystick" size also (0,0) -> (w_full - joy_size, h_full - joy_size) */}
+          <div className='absolute top-0 left-0 w-8 aspect-square rounded-full bg-fuchsia-400'></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LeftThaliaPadBoard() {
+  return (
+    <div className='h-fit flex'>
       <div className='border-2 border-gray-400 rounded-tl-xl rounded-bl-[8rem]'>
         <div className='w-fit pl-8 pr-4 pt-6 flex flex-nowrap gap-2'>
           {/* 2-/3-/6-/7- */}
@@ -259,61 +403,12 @@ function LeftThaliaPadBoard() {
           </div>
         </div>
       </div>
-      <div className='py-8 bg-fuchsia-100 border-r-2 border-y-2 rounded-r-xl border-gray-400 px-4 grid grid-cols-1 justify-center items-center gap-4'>
-        <button
-          type='button'
-          className={cn(
-            "cursor-pointer w-12 aspect-square bg-gray-300 text-gray-600",
-            oscillatorTypes.includes("sine") && "text-pink-900 bg-pink-300"
-          )}
-          onClick={() => toggleWaveType("sine")}
-        >
-          <div className='w-8 mx-auto'>
-            <SineWaveIcon />
-          </div>
-        </button>
-        <button
-          type='button'
-          className={cn(
-            "cursor-pointer w-12 aspect-square text-gray-900 bg-gray-300",
-            oscillatorTypes.includes("square") && "text-green-900 bg-green-300"
-          )}
-          onClick={() => toggleWaveType("square")}
-        >
-          <div className='w-8 mx-auto'>
-            <SquareWaveIcon />
-          </div>
-        </button>
-        <button
-          type='button'
-          className={cn(
-            "cursor-pointer w-12 aspect-square text-gray-900 bg-gray-300",
-            oscillatorTypes.includes("sawtooth") &&
-              "text-yellow-900 bg-yellow-300"
-          )}
-          onClick={() => toggleWaveType("sawtooth")}
-        >
-          <div className='w-8 mx-auto'>
-            <SawtoothWaveIcon />
-          </div>
-        </button>
-        <button
-          type='button'
-          className={cn(
-            "cursor-pointer w-12 aspect-square text-gray-900 bg-gray-300",
-            oscillatorTypes.includes("triangle") && "text-red-900 bg-red-300"
-          )}
-          onClick={() => toggleWaveType("triangle")}
-        >
-          <div className='w-8 mx-auto'>
-            <TriangularWaveIcon />
-          </div>
-        </button>
-      </div>
+      <LeftThaliaPadOptions />
     </div>
   );
 }
 
+// TODO: once we have things "finished", update right board to be like left board
 function RightThaliaPadBoard() {
   const { oscillatorTypes, toggleWaveType } = useContext(ThaliaPadBoardContext);
   return (
@@ -448,7 +543,7 @@ function ThaliaPadButton({
         !isPlaying &&
         audioContext &&
         destination &&
-        keys.includes(event.key)
+        keys.includes(event.key.toLowerCase())
       ) {
         setIsPlaying(true);
         playSynth({
@@ -464,7 +559,7 @@ function ThaliaPadButton({
 
   const keyUpHandler = useCallback(
     (event: KeyboardEvent) => {
-      if (keys.includes(event.key)) {
+      if (keys.includes(event.key.toLowerCase())) {
         setIsPlaying(false);
       }
     },
@@ -518,6 +613,7 @@ function ThaliaPadButton({
 }
 // #regionend
 
+// #region Icons
 export function ArrowUpBold({
   title = "Arrow Up",
   ...props
@@ -612,7 +708,7 @@ const SquareWaveIcon = ({
         {...props}
       >
         <title>{title}</title>
-        <g transform='translate(0, 10)'>
+        <g transform='translate(0, 11)'>
           <path
             d='M2 4h4V-2h4v6h4V-2h4v6h4'
             stroke='currentColor'
@@ -674,7 +770,7 @@ const TriangularWaveIcon = ({
         {...props}
       >
         <title>{title}</title>
-        <g transform='translate(0, 12)'>
+        <g transform='translate(0, 11)'>
           <path
             d='M2 4l6 -4l6 4l6 -4l6 4'
             stroke='currentColor'
@@ -689,3 +785,59 @@ const TriangularWaveIcon = ({
     </>
   );
 };
+
+const ReverbIcon = ({
+  title = "Triangular Wave",
+  ...props
+}: { title?: string } & SVGProps<SVGSVGElement>) => {
+  return (
+    <>
+      <svg
+        xmlns='http://www.w3.org/2000/svg'
+        width='100%'
+        viewBox='0 0 24 24'
+        fill='none'
+        aria-hidden='true'
+        {...props}
+      >
+        <title>{title}</title>
+        <g transform='translate(0, 5.1)'>
+          <path
+            d='M8 12c-2 -3 -2 -7 0 -10'
+            stroke='currentColor'
+            strokeWidth='2'
+            fill='none'
+            strokeLinecap='round'
+            strokeLinejoin='round'
+          />
+          <path
+            d='M16 12c2 -3 2 -7 0 -10'
+            stroke='currentColor'
+            strokeWidth='2'
+            fill='none'
+            strokeLinecap='round'
+            strokeLinejoin='round'
+          />
+          <path
+            d='M4 14c-3 -4 -3 -10 0 -14'
+            stroke='currentColor'
+            strokeWidth='2'
+            fill='none'
+            strokeLinecap='round'
+            strokeLinejoin='round'
+          />
+          <path
+            d='M20 14c3 -4 3 -10 0 -14'
+            stroke='currentColor'
+            strokeWidth='2'
+            fill='none'
+            strokeLinecap='round'
+            strokeLinejoin='round'
+          />
+        </g>
+      </svg>
+      <span className='sr-only'>{title}</span>
+    </>
+  );
+};
+// #regionend

@@ -1,3 +1,21 @@
+export function setGainValueAtTime({
+  gain,
+  timeElapse,
+  gainNode,
+  audioContext,
+}: {
+  gain: number;
+  timeElapse: number;
+  gainNode: GainNode;
+  audioContext: AudioContext;
+}) {
+  gainNode.gain.setValueAtTime(gainNode.gain.value, audioContext.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(
+    gain > 0.001 ? gain : 0.001,
+    audioContext.currentTime + timeElapse
+  );
+}
+
 export function createNoiseBuffer(audioContext: AudioContext) {
   const bufferSize = audioContext.sampleRate;
   const buffer = audioContext.createBuffer(
@@ -58,6 +76,8 @@ export function playSynth({
   destination: AudioNode;
   oscillatorTypes?: OscillatorType[];
 }) {
+  const numOscillators = oscillatorTypes.length;
+
   const currentTime = audioContext.currentTime;
   const currentFrequency = clampFrequency(frequency);
 
@@ -67,6 +87,7 @@ export function playSynth({
 
   if (oscillatorTypes.includes("sine")) {
     playSynthOscillator({
+      gain: 2 / numOscillators,
       frequency: currentFrequency,
       duration,
       audioContext,
@@ -76,7 +97,7 @@ export function playSynth({
 
   if (oscillatorTypes.includes("square")) {
     playSynthOscillator({
-      gain: 0.1,
+      gain: 0.3 / numOscillators,
       frequency: currentFrequency,
       oscillatorType: "square",
       duration,
@@ -87,7 +108,7 @@ export function playSynth({
 
   if (oscillatorTypes.includes("sawtooth")) {
     playSynthOscillator({
-      gain: 0.1,
+      gain: 0.3 / numOscillators,
       frequency: currentFrequency,
       oscillatorType: "sawtooth",
       duration,
@@ -98,7 +119,7 @@ export function playSynth({
 
   if (oscillatorTypes.includes("triangle")) {
     playSynthOscillator({
-      gain: 0.5,
+      gain: 2 / numOscillators,
       frequency: currentFrequency,
       oscillatorType: "triangle",
       duration,
