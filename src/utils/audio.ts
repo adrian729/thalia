@@ -76,7 +76,7 @@ export function playSynth({
   destination: AudioNode;
   oscillatorTypes?: OscillatorType[];
 }) {
-  const numOscillators = oscillatorTypes.length;
+  const numOscillators = oscillatorTypes.length || 1;
 
   const currentTime = audioContext.currentTime;
   const currentFrequency = clampFrequency(frequency);

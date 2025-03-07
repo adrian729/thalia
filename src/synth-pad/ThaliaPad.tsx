@@ -18,6 +18,7 @@ import {
 import { notes } from "../utils/notes";
 import { playSynth } from "../utils/audio";
 import { IRType, useReverb } from "../audio-context/useReverb";
+import { useOscillator } from "../audio-context/useOscillator";
 
 type ThaliaPadConfigItem = {
   id: number;
@@ -241,6 +242,166 @@ export function ThaliaPadBoardProvider({ children }: PropsWithChildren) {
   );
 }
 
+type Box = {
+  width: number;
+  height: number;
+  top: number;
+  left: number;
+};
+const defaultBox = {
+  width: 0,
+  height: 0,
+  top: 0,
+  left: 0,
+};
+
+function clientToContainerCoords(
+  clientX: number,
+  clientY: number,
+  containerBox: Box
+) {
+  const { width, height, top, left } = containerBox;
+  const x = (clientX - left) / width;
+  const y = (clientY - top) / height;
+  return { x, y };
+}
+
+const ArrowKeys = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"] as const;
+type ArrowKey = (typeof ArrowKeys)[number];
+function isArrowKey(key: unknown): key is ArrowKey {
+  return ArrowKeys.includes(key as ArrowKey);
+}
+
+function ThaliaPadJoystick() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerBox, setContainerBox] = useState<Box>({ ...defaultBox });
+  const tipRef = useRef<HTMLDivElement>(null);
+  const [tipBox, setTipBox] = useState<Box>({ ...defaultBox });
+  const [tipPosition, setTipPosition] = useState({ x: 0, y: 0 }); // -- relative to container, [0, 1], (0, 0) -> top-left, (1, 1) -> bottom-right
+
+  console.log("!!!con", containerBox);
+  console.log("!!!tip", tipBox);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (containerRef.current && tipRef.current) {
+        const {
+          width: cWidth,
+          height: cHeight,
+          top: cTop,
+          left: cLeft,
+        } = containerRef.current.getBoundingClientRect();
+        setContainerBox({
+          width: cWidth,
+          height: cHeight,
+          top: cTop,
+          left: cLeft,
+        });
+
+        const {
+          width: tWidth,
+          height: tHeight,
+          top: tTop,
+          left: tLeft,
+        } = tipRef.current.getBoundingClientRect();
+        setTipBox({
+          width: tWidth,
+          height: tHeight,
+          top: tTop,
+          left: tLeft,
+        });
+        setTipPosition({ x: 0.5, y: 0.5 });
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    handleResize();
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const [pressedArrowKeys, setPressedArrowKeys] = useState<ArrowKey[]>([]);
+
+  const keyDownHandler = useCallback((event: KeyboardEvent) => {
+    if (event.key === "ArrowUp") {
+      setTipPosition((prev) => ({ x: prev.x, y: 0 }));
+      setPressedArrowKeys((prev) => [...prev, "ArrowUp"]);
+    } else if (event.key === "ArrowDown") {
+      setTipPosition((prev) => ({ x: prev.x, y: 1 }));
+      setPressedArrowKeys((prev) => [...prev, "ArrowDown"]);
+    } else if (event.key === "ArrowLeft") {
+      setTipPosition((prev) => ({ x: 0, y: prev.y }));
+      setPressedArrowKeys((prev) => [...prev, "ArrowLeft"]);
+    } else if (event.key === "ArrowRight") {
+      setTipPosition((prev) => ({ x: 1, y: prev.y }));
+      setPressedArrowKeys((prev) => [...prev, "ArrowRight"]);
+    }
+  }, []);
+
+  const keyUpHandler = useCallback(
+    (event: KeyboardEvent) => {
+      if (isArrowKey(event.key) && pressedArrowKeys.includes(event.key)) {
+        setPressedArrowKeys((prev) => {
+          const pressedKeys = prev.filter((key) => key !== event.key);
+          setTipPosition(() => {
+            let x = 0.5;
+            let y = 0.5;
+            if (pressedKeys.includes("ArrowUp")) {
+              y = 0;
+            } else if (pressedKeys.includes("ArrowDown")) {
+              y = 1;
+            }
+            if (pressedKeys.includes("ArrowLeft")) {
+              x = 0;
+            } else if (pressedKeys.includes("ArrowRight")) {
+              x = 1;
+            }
+            return { x, y };
+          });
+          return pressedKeys;
+        });
+      }
+    },
+    [pressedArrowKeys]
+  );
+
+  useEffect(() => {
+    document.addEventListener("keydown", keyDownHandler);
+    document.addEventListener("keyup", keyUpHandler);
+    return () => {
+      document.removeEventListener("keydown", keyDownHandler);
+      document.removeEventListener("keyup", keyUpHandler);
+    };
+  }, [keyDownHandler, keyUpHandler]);
+
+  return (
+    <div
+      ref={containerRef}
+      className='relative w-16 aspect-square rounded-full bg-gray-500/15'
+      onClick={(event) => {
+        console.log("!!!event", event);
+        const { clientX, clientY } = event;
+        console.log("!!!container", containerBox);
+        console.log("!!!client", clientX, clientY);
+        console.log(
+          "!!!coords",
+          clientToContainerCoords(clientX, clientY, containerBox)
+        );
+        setTipPosition(clientToContainerCoords(clientX, clientY, containerBox));
+      }}
+    >
+      <div
+        ref={tipRef}
+        className='absolute w-8 aspect-square rounded-full bg-fuchsia-400'
+        style={{
+          left: `${tipPosition.x * containerBox.width - tipBox.width / 2}px`,
+          top: `${tipPosition.y * containerBox.height - tipBox.height / 2}px`,
+        }}
+      ></div>
+    </div>
+  );
+}
+
 const reverbs: (IRType | null)[] = [
   null,
   "basement",
@@ -354,11 +515,7 @@ function LeftThaliaPadOptions() {
         </div>
       </div>
       <div className='w-full flex justify-end items-end'>
-        <div className='relative w-16 aspect-square rounded-full bg-gray-300'>
-          {/* // TODO: move "joystick" around, calc (x,y) coordinates and translate to absolute positions. 
-        // ! We need to take into account the "joystick" size also (0,0) -> (w_full - joy_size, h_full - joy_size) */}
-          <div className='absolute top-0 left-0 w-8 aspect-square rounded-full bg-fuchsia-400'></div>
-        </div>
+        <ThaliaPadJoystick />
       </div>
     </div>
   );
@@ -367,7 +524,7 @@ function LeftThaliaPadOptions() {
 function LeftThaliaPadBoard() {
   return (
     <div className='h-fit flex'>
-      <div className='border-2 border-gray-400 rounded-tl-xl rounded-bl-[8rem]'>
+      <div className='bg-gray-50 border-2 border-gray-400 rounded-tl-xl rounded-bl-[8rem]'>
         <div className='w-fit pl-8 pr-4 pt-6 flex flex-nowrap gap-2'>
           {/* 2-/3-/6-/7- */}
           {[1, 3, 8, 10].map((midiId) =>
@@ -529,41 +686,105 @@ function ThaliaPadButton({
   configItem: ThaliaPadConfigItem;
   keys: string[];
 }) {
-  const [isPlaying, setIsPlaying] = useState(false);
   const { oscillatorTypes, helperEnabled, audioContext, destination } =
     useContext(ThaliaPadBoardContext);
   const { extraClasses, playingClasses } = configItem;
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const { start: startSine } = useOscillator({
+    frequency,
+    destination,
+    type: "sine",
+  });
+  const { start: startSquare } = useOscillator({
+    frequency,
+    destination,
+    type: "square",
+  });
+  const { start: startSawtooth } = useOscillator({
+    frequency,
+    destination,
+    type: "sawtooth",
+  });
+  const { start: startTriangle } = useOscillator({
+    frequency,
+    destination,
+    type: "triangle",
+  });
+
+  const stopSineRef = useRef<() => void>(null);
+  const stopSquareRef = useRef<() => void>(null);
+  const stopSawtoothRef = useRef<() => void>(null);
+  const stopTriangleRef = useRef<() => void>(null);
+
+  const playOscillator = useCallback(() => {
+    const numOscillators = oscillatorTypes.length || 1;
+
+    if (audioContext && destination && !isPlaying) {
+      if (!stopSineRef.current && oscillatorTypes.includes("sine")) {
+        stopSineRef.current = startSine(2 / numOscillators);
+      }
+      if (!stopSquareRef.current && oscillatorTypes.includes("square")) {
+        stopSquareRef.current = startSquare(0.3 / numOscillators);
+      }
+      if (!stopSawtoothRef.current && oscillatorTypes.includes("sawtooth")) {
+        stopSawtoothRef.current = startSawtooth(0.3 / numOscillators);
+      }
+      if (!stopTriangleRef.current && oscillatorTypes.includes("triangle")) {
+        stopTriangleRef.current = startTriangle(2 / numOscillators);
+      }
+      setIsPlaying(true);
+    }
+  }, [
+    audioContext,
+    destination,
+    isPlaying,
+    oscillatorTypes,
+    startSawtooth,
+    startSine,
+    startSquare,
+    startTriangle,
+  ]);
+
+  const stopOscillator = useCallback(() => {
+    if (!isPlaying) {
+      return;
+    }
+    if (stopSineRef.current) {
+      stopSineRef.current();
+      stopSineRef.current = null;
+    }
+    if (stopSquareRef.current) {
+      stopSquareRef.current();
+      stopSquareRef.current = null;
+    }
+    if (stopSawtoothRef.current) {
+      stopSawtoothRef.current();
+      stopSawtoothRef.current = null;
+    }
+    if (stopTriangleRef.current) {
+      stopTriangleRef.current();
+      stopTriangleRef.current = null;
+    }
+    setIsPlaying(false);
+  }, [isPlaying]);
 
   const keyDownHandler = useCallback(
     (event: KeyboardEvent) => {
-      if (frequency < 20 || frequency > 20000) {
-        return;
-      }
-      if (
-        !isPlaying &&
-        audioContext &&
-        destination &&
-        keys.includes(event.key.toLowerCase())
-      ) {
-        setIsPlaying(true);
-        playSynth({
-          frequency,
-          audioContext,
-          destination,
-          oscillatorTypes,
-        });
+      if (keys.includes(event.key.toLowerCase())) {
+        playOscillator();
       }
     },
-    [audioContext, destination, frequency, isPlaying, keys, oscillatorTypes]
+    [keys, playOscillator]
   );
 
   const keyUpHandler = useCallback(
     (event: KeyboardEvent) => {
       if (keys.includes(event.key.toLowerCase())) {
-        setIsPlaying(false);
+        stopOscillator();
       }
     },
-    [keys]
+    [keys, stopOscillator]
   );
 
   useEffect(() => {
@@ -584,27 +805,13 @@ function ThaliaPadButton({
         isPlaying && playingClasses,
       ])}
       onMouseDown={() => {
-        setIsPlaying(true);
-        if (
-          !audioContext ||
-          !destination ||
-          frequency < 20 ||
-          frequency > 20000
-        ) {
-          return;
-        }
-        playSynth({
-          frequency,
-          audioContext,
-          destination,
-          oscillatorTypes,
-        });
+        playOscillator();
       }}
       onMouseUp={() => {
-        setIsPlaying(false);
+        stopOscillator();
       }}
       onMouseLeave={() => {
-        setIsPlaying(false);
+        stopOscillator();
       }}
     >
       {helperEnabled && `${keys[0]}`}
