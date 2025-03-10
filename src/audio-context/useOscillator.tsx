@@ -1,17 +1,22 @@
 import { MainAudioContext } from "./MainAudioContext";
 import useSafeContext from "../utils/useSafeContext";
 
-const epsilon = 0.03;
-
 type UseOscillatorProps = {
   gain?: number;
   frequency: number;
   type?: OscillatorType;
   destination: AudioNode;
 };
+
 type UseOscillatorType = {
-  start: (gain: number) => () => void;
+  start: ({ gain, detune }: { gain: number; detune?: number }) => {
+    oscillator: OscillatorNode;
+    stop: () => void;
+  };
 };
+
+const epsilon = 0.03;
+
 export function useOscillator({
   frequency,
   type = "sine",
@@ -22,7 +27,7 @@ export function useOscillator({
   } = useSafeContext(MainAudioContext);
 
   return {
-    start: (gain: number) => {
+    start: ({ gain, detune = 0 }: { gain: number; detune?: number }) => {
       if (frequency < 20 || frequency > 20000) {
         throw new Error("Frequency must be between 20 and 20000 Hz");
       }
@@ -32,6 +37,7 @@ export function useOscillator({
       const oscillator = new OscillatorNode(audioContext, {
         frequency,
         type,
+        detune,
       });
 
       const gainNode = new GainNode(audioContext, { gain: 0.001 });
@@ -56,7 +62,7 @@ export function useOscillator({
         }, 2 * epsilon * 1000);
       };
 
-      return stop;
+      return { oscillator, stop };
     },
   };
 }

@@ -16,9 +16,9 @@ import {
   useState,
 } from "react";
 import { notes } from "../utils/notes";
-import { playSynth } from "../utils/audio";
 import { IRType, useReverb } from "../audio-context/useReverb";
 import { useOscillator } from "../audio-context/useOscillator";
+import useSafeContext from "../utils/useSafeContext";
 
 type ThaliaPadConfigItem = {
   id: number;
@@ -152,32 +152,46 @@ function mapIdToThaliaPadButton(
 }
 
 const defaultAudioContext = new AudioContext();
+
 type ThaliaPadBoardContextType = {
   helperEnabled: boolean;
   setHelperEnabled: Dispatch<SetStateAction<boolean>>;
+
   oscillatorTypes: OscillatorType[];
   setOscillatorTypes: Dispatch<SetStateAction<OscillatorType[]>>;
   toggleWaveType: (oscillatorType: OscillatorType) => void;
+
   reverbEnabled: boolean;
   setReverbEnabled: Dispatch<SetStateAction<boolean>>;
   toggleReverb: () => void;
   setSelectedIR: (selectedIR: IRType) => void;
+
+  detune: number;
+  setDetune: Dispatch<SetStateAction<number>>;
+
   audioContext: AudioContext;
   destination: AudioNode;
 };
 const ThaliaPadBoardContext = createContext<ThaliaPadBoardContextType>({
   helperEnabled: false,
   setHelperEnabled: () => {},
+
   oscillatorTypes: ["sine", "square", "sawtooth", "triangle"],
   setOscillatorTypes: () => {},
   toggleWaveType: () => {},
+
   reverbEnabled: false,
   setReverbEnabled: () => {},
   toggleReverb: () => {},
   setSelectedIR: () => {},
+
+  detune: 0,
+  setDetune: () => {},
+
   audioContext: defaultAudioContext,
   destination: new GainNode(defaultAudioContext, { gain: 1 }),
 });
+
 export function ThaliaPadBoardProvider({ children }: PropsWithChildren) {
   const [helperEnabled, setHelperEnabled] = useState(false);
 
@@ -199,6 +213,7 @@ export function ThaliaPadBoardProvider({ children }: PropsWithChildren) {
   const mainAudioContext = useContext(MainAudioContext);
   const { audioContext, mainNode } = mainAudioContext.state;
   const destinationRef = useRef(new GainNode(audioContext, { gain: 1 }));
+
   const [reverbEnabled, setReverbEnabled] = useState(true);
   const wetGainValue = useMemo(() => 0.2, []);
   const { dry, wet, setWetGain, setSelectedIR } = useReverb({
@@ -221,18 +236,26 @@ export function ThaliaPadBoardProvider({ children }: PropsWithChildren) {
     });
   }, [setWetGain, wetGainValue]);
 
+  const [detune, setDetune] = useState(0);
+
   return (
     <ThaliaPadBoardContext.Provider
       value={{
         helperEnabled,
         setHelperEnabled,
+
         oscillatorTypes,
         setOscillatorTypes,
         toggleWaveType,
+
         reverbEnabled,
         setReverbEnabled,
         toggleReverb,
         setSelectedIR,
+
+        detune,
+        setDetune,
+
         audioContext: audioContext!,
         destination: destinationRef.current,
       }}
@@ -273,6 +296,8 @@ function isArrowKey(key: unknown): key is ArrowKey {
 }
 
 function ThaliaPadJoystick() {
+  const { setDetune } = useSafeContext(ThaliaPadBoardContext);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerBox, setContainerBox] = useState<Box>({ ...defaultBox });
   const tipRef = useRef<HTMLDivElement>(null);
@@ -373,6 +398,10 @@ function ThaliaPadJoystick() {
       document.removeEventListener("keyup", keyUpHandler);
     };
   }, [keyDownHandler, keyUpHandler]);
+
+  useEffect(() => {
+    setDetune((1 - 2 * tipPosition.y) * 1200);
+  }, [tipPosition, setDetune]);
 
   return (
     <div
@@ -686,11 +715,10 @@ function ThaliaPadButton({
   configItem: ThaliaPadConfigItem;
   keys: string[];
 }) {
-  const { oscillatorTypes, helperEnabled, audioContext, destination } =
+  const { oscillatorTypes, helperEnabled, detune, audioContext, destination } =
     useContext(ThaliaPadBoardContext);
   const { extraClasses, playingClasses } = configItem;
   const [isPlaying, setIsPlaying] = useState(false);
-
   const { start: startSine } = useOscillator({
     frequency,
     destination,
@@ -711,33 +739,56 @@ function ThaliaPadButton({
     destination,
     type: "triangle",
   });
-
+  const oscillatorSineRef = useRef<OscillatorNode | null>(null);
   const stopSineRef = useRef<() => void>(null);
+  const oscillatorSquareRef = useRef<OscillatorNode | null>(null);
   const stopSquareRef = useRef<() => void>(null);
+  const oscillatorSawtoothRef = useRef<OscillatorNode | null>(null);
   const stopSawtoothRef = useRef<() => void>(null);
+  const oscillatorTriangleRef = useRef<OscillatorNode | null>(null);
   const stopTriangleRef = useRef<() => void>(null);
 
   const playOscillator = useCallback(() => {
     const numOscillators = oscillatorTypes.length || 1;
-
     if (audioContext && destination && !isPlaying) {
       if (!stopSineRef.current && oscillatorTypes.includes("sine")) {
-        stopSineRef.current = startSine(2 / numOscillators);
+        const { stop, oscillator } = startSine({
+          gain: 2 / numOscillators,
+          detune,
+        });
+        oscillatorSineRef.current = oscillator;
+        stopSineRef.current = stop;
       }
       if (!stopSquareRef.current && oscillatorTypes.includes("square")) {
-        stopSquareRef.current = startSquare(0.3 / numOscillators);
+        const { stop, oscillator } = startSquare({
+          gain: 0.3 / numOscillators,
+          detune,
+        });
+        oscillatorSquareRef.current = oscillator;
+        stopSquareRef.current = stop;
       }
       if (!stopSawtoothRef.current && oscillatorTypes.includes("sawtooth")) {
-        stopSawtoothRef.current = startSawtooth(0.3 / numOscillators);
+        const { stop, oscillator } = startSawtooth({
+          gain: 0.3 / numOscillators,
+          detune,
+        });
+        oscillatorSawtoothRef.current = oscillator;
+        stopSawtoothRef.current = stop;
       }
       if (!stopTriangleRef.current && oscillatorTypes.includes("triangle")) {
-        stopTriangleRef.current = startTriangle(2 / numOscillators);
+        const { stop, oscillator } = startTriangle({
+          gain: 2 / numOscillators,
+          detune,
+        });
+        oscillatorTriangleRef.current = oscillator;
+        stopTriangleRef.current = stop;
       }
       setIsPlaying(true);
     }
   }, [
     audioContext,
     destination,
+    detune,
     isPlaying,
     oscillatorTypes,
     startSawtooth,
@@ -768,6 +819,22 @@ function ThaliaPadButton({
     }
     setIsPlaying(false);
   }, [isPlaying]);
+
+  useEffect(() => {
+    const currentTime = audioContext.currentTime;
+    if (oscillatorSineRef.current) {
+      oscillatorSineRef.current.detune.setValueAtTime(detune, currentTime);
+    }
+    if (oscillatorSquareRef.current) {
+      oscillatorSquareRef.current.detune.setValueAtTime(detune, currentTime);
+    }
+    if (oscillatorSawtoothRef.current) {
+      oscillatorSawtoothRef.current.detune.setValueAtTime(detune, currentTime);
+    }
+    if (oscillatorTriangleRef.current) {
+      oscillatorTriangleRef.current.detune.setValueAtTime(detune, currentTime);
+    }
+  }, [audioContext.currentTime, detune]);
 
   const keyDownHandler = useCallback(
     (event: KeyboardEvent) => {
@@ -804,15 +871,9 @@ function ThaliaPadButton({
         extraClasses,
         isPlaying && playingClasses,
       ])}
-      onMouseDown={() => {
-        playOscillator();
-      }}
-      onMouseUp={() => {
-        stopOscillator();
-      }}
-      onMouseLeave={() => {
-        stopOscillator();
-      }}
+      onMouseDown={playOscillator}
+      onMouseUp={stopOscillator}
+      onMouseLeave={stopOscillator}
     >
       {helperEnabled && `${keys[0]}`}
     </button>
@@ -915,7 +976,7 @@ const SquareWaveIcon = ({
         {...props}
       >
         <title>{title}</title>
-        <g transform='translate(0, 11)'>
+        <g transform='translate(0, 10)'>
           <path
             d='M2 4h4V-2h4v6h4V-2h4v6h4'
             stroke='currentColor'
