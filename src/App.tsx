@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { MainAudioContext } from "./audio-context/MainAudioContext";
 import DrumPad from "./synth-pad/DrumPad";
-import ThaliaPad from "./synth-pad/ThaliaPad";
+import ThaliaPad from "./synth-pad/ThaliaPad/ThaliaPad";
 
 function App() {
   const mainAudioContext = useContext(MainAudioContext);
