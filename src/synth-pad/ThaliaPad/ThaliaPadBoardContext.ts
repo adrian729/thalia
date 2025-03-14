@@ -7,6 +7,9 @@ type ThaliaPadBoardContextType = {
   helperEnabled: boolean;
   setHelperEnabled: Dispatch<SetStateAction<boolean>>;
 
+  initialMidiId: number;
+  setInitialMidiId: Dispatch<SetStateAction<number>>;
+
   oscillatorTypes: OscillatorType[];
   setOscillatorTypes: Dispatch<SetStateAction<OscillatorType[]>>;
   toggleWaveType: (oscillatorType: OscillatorType) => void;
@@ -25,6 +28,9 @@ type ThaliaPadBoardContextType = {
 export const ThaliaPadBoardContext = createContext<ThaliaPadBoardContextType>({
   helperEnabled: false,
   setHelperEnabled: () => {},
+
+  initialMidiId: 36,
+  setInitialMidiId: () => {},
 
   oscillatorTypes: ["sine", "square", "sawtooth", "triangle"],
   setOscillatorTypes: () => {},

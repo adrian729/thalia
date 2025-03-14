@@ -11,10 +11,23 @@ import {
 } from "react";
 import { useOscillator } from "../../audio-context/useOscillator";
 import { IRType } from "../../audio-context/useReverb";
-import { notes } from "../../utils/notes";
+import {
+  A,
+  B,
+  BEMOL,
+  C,
+  D,
+  E,
+  F,
+  G,
+  NATURAL,
+  notes,
+  SHARP,
+} from "../../utils/notes";
 import { cn } from "../../utils/styles";
-import { ThaliaPadBoardProvider } from "./ThaliaBoardContextProvider";
+import useSafeContext from "../../utils/useSafeContext";
 import { ThaliaPadBoardContext } from "./ThaliaPadBoardContext";
+import { ThaliaPadBoardProvider } from "./ThaliaPadBoardContextProvider";
 import { ThaliaPadJoystick } from "./ThaliaPadJoystick";
 
 type ThaliaPadConfigItem = {
@@ -133,18 +146,127 @@ const rightKeys: string[][] = [
   [";"],
 ];
 
-function mapIdToThaliaPadButton(
+function MapIdToThaliaPadButton(
   midiId: number,
   configItem: ThaliaPadConfigItem,
   keys: string[]
 ): JSX.Element {
+  const { initialMidiId } = useSafeContext(ThaliaPadBoardContext);
+
   return (
     <ThaliaPadButton
       key={midiId}
-      frequency={notes[midiId + 36].frequency}
+      frequency={notes[midiId + initialMidiId].frequency}
       configItem={configItem}
       keys={keys}
     />
+  );
+}
+
+function OctaveSymbol({ index }: { index: number }) {
+  switch (index) {
+    case 0:
+      return <MinusIcon />;
+    case 1:
+      return <NullIcon />;
+    case 2:
+      return <PlusIcon />;
+    case 3:
+      return <DoublePlusIcon />;
+    case 4:
+      return <TriplePlusIcon />;
+    default:
+      return null;
+  }
+}
+const octaveClasses = [
+  "text-rose-900 bg-rose-300",
+  "text-blue-900 bg-blue-300",
+  "text-green-900 bg-green-300",
+  "text-teal-900 bg-teal-300",
+  "text-emerald-900 bg-emerald-300",
+] as const;
+
+const notesNames = [C, D, E, F, G, A, B] as const;
+const noteValues = [0, 2, 4, 5, 7, 9, 11] as const;
+const noteClasses = [
+  "text-red-900 bg-red-300",
+  "text-amber-900 bg-amber-300",
+  "text-lime-900 bg-lime-300",
+  "text-green-900 bg-green-300",
+  "text-sky-900 bg-sky-300",
+  "text-violet-900 bg-violet-300",
+  "text-fuchsia-900 bg-fuchsia-300",
+] as const;
+
+const accidental = [BEMOL, NATURAL, SHARP] as const;
+const accidentalClasses = [
+  "text-pink-900 bg-pink-300",
+  "text-blue-900 bg-blue-300 pb-2",
+  "text-emerald-900 bg-emerald-300",
+] as const;
+
+function PadKeySelectionButtons({
+  initialOctaveIndex = 1,
+  initialNoteIndex = 0,
+  initialAccidentalIndex = 1,
+}) {
+  const { setInitialMidiId } = useSafeContext(ThaliaPadBoardContext);
+  const [octaveIndex, setOctaveIndex] = useState(initialOctaveIndex);
+  const [noteIndex, setNoteIndex] = useState(initialNoteIndex);
+  const [accidentalIndex, setAccidentalIndex] = useState(
+    initialAccidentalIndex
+  );
+
+  useEffect(() => {
+    const initialMidiId = 36;
+    const octave = 12 * (octaveIndex - 1);
+    const accidental = accidentalIndex - 1;
+    setInitialMidiId(
+      octave + noteValues[noteIndex] + accidental + initialMidiId
+    );
+  }, [octaveIndex, noteIndex, accidentalIndex, setInitialMidiId]);
+
+  return (
+    <>
+      <button
+        type='button'
+        className={cn(
+          "cursor-pointer w-9 aspect-square rounded-full bg-gray-300 text-gray-900 font-bold",
+          octaveClasses[octaveIndex]
+        )}
+        onClick={() => {
+          setOctaveIndex((prev) => (prev + 1) % 5);
+        }}
+      >
+        <OctaveSymbol index={octaveIndex} />
+      </button>
+      <button
+        type='button'
+        className={cn(
+          "cursor-pointer w-9 aspect-square rounded-full bg-gray-300 text-gray-900 font-bold text-xl",
+          noteClasses[noteIndex]
+        )}
+        onClick={() => {
+          setNoteIndex((prev) => (prev + 1) % notesNames.length);
+        }}
+      >
+        {notesNames[noteIndex]}
+      </button>
+      <button
+        type='button'
+        className={cn(
+          "cursor-pointer w-9 aspect-square rounded-full bg-gray-300 text-gray-900 font-bold text-xl",
+          accidentalIndex === 1 && "pb-2",
+          accidentalClasses[accidentalIndex]
+        )}
+        onClick={() => {
+          setAccidentalIndex((prev) => (prev + 1) % accidental.length);
+        }}
+      >
+        {accidental[accidentalIndex]}
+      </button>
+    </>
   );
 }
 
@@ -258,6 +380,7 @@ function LeftThaliaPadOptions() {
               <ReverbIcon />
             </div>
           </button>
+          <PadKeySelectionButtons />
         </div>
       </div>
       <div className='w-full flex justify-end items-end'>
@@ -274,7 +397,7 @@ function LeftThaliaPadBoard() {
         <div className='w-fit pl-8 pr-4 pt-6 flex flex-nowrap gap-2'>
           {/* 2-/3-/6-/7- */}
           {[1, 3, 8, 10].map((midiId) =>
-            mapIdToThaliaPadButton(
+            MapIdToThaliaPadButton(
               midiId,
               thaliaConfigItems[midiId % 12],
               leftKeys[midiId % 12]
@@ -285,7 +408,7 @@ function LeftThaliaPadBoard() {
           <div className='w-fit pl-8 pr-4 flex flex-nowrap gap-2'>
             {/* 1/3/5/7 */}
             {[0, 4, 7, 11].map((midiId) =>
-              mapIdToThaliaPadButton(
+              MapIdToThaliaPadButton(
                 midiId,
                 thaliaConfigItems[midiId % 12],
                 leftKeys[midiId % 12]
@@ -297,7 +420,7 @@ function LeftThaliaPadBoard() {
           <div className='w-fit pl-8 pr-4 pb-6 flex flex-nowrap gap-2'>
             {/* 2/4/5-/6 */}
             {[2, 5, 6, 9].map((midiId) =>
-              mapIdToThaliaPadButton(
+              MapIdToThaliaPadButton(
                 midiId,
                 thaliaConfigItems[midiId % 12],
                 leftKeys[midiId % 12]
@@ -311,8 +434,164 @@ function LeftThaliaPadBoard() {
   );
 }
 
-// TODO: once we have things "finished", update right board to be like left board
+function RightThaliaPadOptions() {
+  const {
+    oscillatorTypes,
+    toggleWaveType,
+    reverbEnabled,
+    toggleReverb,
+    setSelectedIR,
+  } = useContext(ThaliaPadBoardContext);
+  const [reverbIdx, setReverbIdx] = useState(1);
+  const currentReverb = useMemo(() => reverbs[reverbIdx], [reverbIdx]);
+
+  useEffect(() => {
+    if (
+      (reverbEnabled && !currentReverb) ||
+      (!reverbEnabled && currentReverb)
+    ) {
+      toggleReverb();
+    }
+  }, [currentReverb, reverbEnabled, toggleReverb]);
+
+  return (
+    <div className='p-4 w-fit bg-blue-100 border-l-2 border-y-2 rounded-l-xl border-gray-400 flex flex-col gap-4 justify-between items-center'>
+      <div className='w-full grid grid-cols-2 gap-4 justify-center items-center'>
+        <div className='h-full flex flex-col justify-between items-center gap-2'>
+          <button
+            type='button'
+            className={cn(
+              "cursor-pointer w-9 aspect-square rounded bg-gray-300 text-gray-600",
+              oscillatorTypes.includes("sine") && "text-pink-900 bg-pink-300"
+            )}
+            onClick={() => toggleWaveType("sine")}
+          >
+            <div className='w-6 mx-auto'>
+              <SineWaveIcon />
+            </div>
+          </button>
+          <button
+            type='button'
+            className={cn(
+              "cursor-pointer w-9 aspect-square rounded text-gray-900 bg-gray-300",
+              oscillatorTypes.includes("square") &&
+                "text-green-900 bg-green-300"
+            )}
+            onClick={() => toggleWaveType("square")}
+          >
+            <div className='w-6 mx-auto'>
+              <SquareWaveIcon />
+            </div>
+          </button>
+          <button
+            type='button'
+            className={cn(
+              "cursor-pointer w-9 aspect-square rounded text-gray-900 bg-gray-300",
+              oscillatorTypes.includes("sawtooth") &&
+                "text-yellow-900 bg-yellow-300"
+            )}
+            onClick={() => toggleWaveType("sawtooth")}
+          >
+            <div className='w-6 mx-auto'>
+              <SawtoothWaveIcon />
+            </div>
+          </button>
+          <button
+            type='button'
+            className={cn(
+              "cursor-pointer w-9 aspect-square rounded text-gray-900 bg-gray-300",
+              oscillatorTypes.includes("triangle") && "text-red-900 bg-red-300"
+            )}
+            onClick={() => toggleWaveType("triangle")}
+          >
+            <div className='w-6 mx-auto'>
+              <TriangularWaveIcon />
+            </div>
+          </button>
+        </div>
+        <div className='h-full flex flex-col justify-between items-center gap-2'>
+          <button
+            type='button'
+            className={cn(
+              "cursor-pointer w-9 aspect-square rounded-full bg-gray-300 text-gray-600",
+              reverbEnabled &&
+                ((currentReverb === "basement" && "text-sky-900 bg-sky-300") ||
+                  (currentReverb === "church" && "text-teal-900 bg-teal-300") ||
+                  (currentReverb === "bathroom" &&
+                    "text-purple-900 bg-purple-300") ||
+                  (currentReverb === "pipe" && "text-pink-900 bg-pink-300"))
+            )}
+            onClick={() => {
+              setReverbIdx((prevIdx) => {
+                const newIdx = (prevIdx + 1) % reverbs.length;
+                const nextReverb = reverbs[newIdx];
+                if (nextReverb) {
+                  setSelectedIR(nextReverb);
+                }
+                return newIdx;
+              });
+            }}
+          >
+            <div className='w-5 mx-auto'>
+              <ReverbIcon />
+            </div>
+          </button>
+          <PadKeySelectionButtons initialOctaveIndex={2} />
+        </div>
+      </div>
+      <div className='w-full flex justify-end items-end'>
+        <ThaliaPadJoystick />
+      </div>
+    </div>
+  );
+}
+
 function RightThaliaPadBoard() {
+  return (
+    <div className='h-fit flex'>
+      <RightThaliaPadOptions />
+      <div className='bg-gray-50 border-2 border-gray-400 rounded-br-xl rounded-tr-[8rem]'>
+        <div className='w-fit pl-8 pr-4 pt-6 flex flex-nowrap gap-2'>
+          {/* 2-/3-/6-/7- */}
+          {[1, 3, 8, 10].map((midiId) =>
+            MapIdToThaliaPadButton(
+              midiId,
+              thaliaConfigItems[midiId % 12],
+              rightKeys[midiId % 12]
+            )
+          )}
+        </div>
+        <div className='pl-11'>
+          <div className='w-fit pl-8 pr-4 flex flex-nowrap gap-2'>
+            {/* 1/3/5/7 */}
+            {[0, 4, 7, 11].map((midiId) =>
+              MapIdToThaliaPadButton(
+                midiId,
+                thaliaConfigItems[midiId % 12],
+                rightKeys[midiId % 12]
+              )
+            )}
+          </div>
+        </div>
+        <div className='pl-22'>
+          <div className='w-fit pl-8 pr-4 pb-6 flex flex-nowrap gap-2'>
+            {/* 2/4/5-/6 */}
+            {[2, 5, 6, 9].map((midiId) =>
+              MapIdToThaliaPadButton(
+                midiId,
+                thaliaConfigItems[midiId % 12],
+                rightKeys[midiId % 12]
+              )
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// TODO: once we have things "finished", update right board to be like left board
+function RightThaliaPadBoard2() {
   const { oscillatorTypes, toggleWaveType } = useContext(ThaliaPadBoardContext);
   return (
     <div className='flex'>
@@ -371,7 +650,7 @@ function RightThaliaPadBoard() {
         <div className='w-fit pr-8 pl-4 pt-6 flex flex-nowrap gap-2'>
           {/* '2-/'3-/'6-/'7- */}
           {[13, 15, 20, 22].map((midiId) =>
-            mapIdToThaliaPadButton(
+            MapIdToThaliaPadButton(
               midiId,
               thaliaConfigItems[midiId % 12],
               rightKeys[midiId % 12]
@@ -382,7 +661,7 @@ function RightThaliaPadBoard() {
           <div className='w-fit pr-8 pl-4 flex flex-nowrap gap-2'>
             {/* 1/3/5/7 */}
             {[12, 16, 19, 23].map((midiId) =>
-              mapIdToThaliaPadButton(
+              MapIdToThaliaPadButton(
                 midiId,
                 thaliaConfigItems[midiId % 12],
                 rightKeys[midiId % 12]
@@ -394,7 +673,7 @@ function RightThaliaPadBoard() {
           <div className='w-fit pr-8 pl-4 pb-6 flex flex-nowrap gap-2'>
             {/* 2/4/5-/6 */}
             {[14, 17, 18, 21].map((midiId) =>
-              mapIdToThaliaPadButton(
+              MapIdToThaliaPadButton(
                 midiId,
                 thaliaConfigItems[midiId % 12],
                 rightKeys[midiId % 12]
@@ -816,6 +1095,177 @@ const ReverbIcon = ({
             stroke='currentColor'
             strokeWidth='2'
             fill='none'
+            strokeLinecap='round'
+            strokeLinejoin='round'
+          />
+        </g>
+      </svg>
+      <span className='sr-only'>{title}</span>
+    </>
+  );
+};
+
+const MinusIcon = ({
+  title = "Minus Icon",
+  ...props
+}: { title?: string } & SVGProps<SVGSVGElement>) => {
+  return (
+    <>
+      <svg
+        xmlns='http://www.w3.org/2000/svg'
+        width='100%'
+        viewBox='0 0 24 24'
+        fill='none'
+        aria-hidden='true'
+        {...props}
+      >
+        <title>{title}</title>
+        <path
+          d='M5 12h14'
+          stroke='currentColor'
+          strokeWidth='2'
+          strokeLinecap='round'
+          strokeLinejoin='round'
+        />
+      </svg>
+      <span className='sr-only'>{title}</span>
+    </>
+  );
+};
+
+const NullIcon = ({
+  title = "Null Icon",
+  ...props
+}: { title?: string } & SVGProps<SVGSVGElement>) => {
+  return (
+    <>
+      <svg
+        xmlns='http://www.w3.org/2000/svg'
+        width='100%'
+        viewBox='0 0 24 24'
+        fill='none'
+        aria-hidden='true'
+        {...props}
+      >
+        <title>{title}</title>
+        <circle
+          cx='12'
+          cy='12'
+          r='6'
+          stroke='currentColor'
+          strokeWidth='2'
+          fill='none'
+        />
+        <path
+          d='M18 6L6 18'
+          stroke='currentColor'
+          strokeWidth='2'
+          strokeLinecap='round'
+          strokeLinejoin='round'
+        />
+      </svg>
+      <span className='sr-only'>{title}</span>
+    </>
+  );
+};
+
+const PlusIcon = ({
+  title = "Plus Icon",
+  ...props
+}: { title?: string } & SVGProps<SVGSVGElement>) => {
+  return (
+    <>
+      <svg
+        xmlns='http://www.w3.org/2000/svg'
+        width='100%'
+        viewBox='0 0 24 24'
+        fill='none'
+        aria-hidden='true'
+        {...props}
+      >
+        <title>{title}</title>
+        <path
+          d='M12 5v14M5 12h14'
+          stroke='currentColor'
+          strokeWidth='2'
+          strokeLinecap='round'
+          strokeLinejoin='round'
+        />
+      </svg>
+      <span className='sr-only'>{title}</span>
+    </>
+  );
+};
+
+const DoublePlusIcon = ({
+  title = "Double Plus Icon",
+  ...props
+}: { title?: string } & SVGProps<SVGSVGElement>) => {
+  return (
+    <>
+      <svg
+        xmlns='http://www.w3.org/2000/svg'
+        width='100%'
+        viewBox='0 0 24 24'
+        fill='none'
+        aria-hidden='true'
+        {...props}
+      >
+        <title>{title}</title>
+        <path
+          d='M8 5v14M1 12h14'
+          stroke='currentColor'
+          strokeWidth='2'
+          strokeLinecap='round'
+          strokeLinejoin='round'
+        />
+        <path
+          d='M16 5v14M9 12h14'
+          stroke='currentColor'
+          strokeWidth='2'
+          strokeLinecap='round'
+          strokeLinejoin='round'
+        />
+      </svg>
+      <span className='sr-only'>{title}</span>
+    </>
+  );
+};
+
+const TriplePlusIcon = ({
+  title = "Triple Plus Icon",
+  ...props
+}: { title?: string } & SVGProps<SVGSVGElement>) => {
+  return (
+    <>
+      <svg
+        xmlns='http://www.w3.org/2000/svg'
+        width='100%'
+        viewBox='0 0 24 24'
+        fill='none'
+        aria-hidden='true'
+        {...props}
+      >
+        <title>{title}</title>
+        <g transform='translate(0, 2)'>
+          <path
+            d='M12 4v4M10 6h4'
+            stroke='currentColor'
+            strokeWidth='2'
+            strokeLinecap='round'
+            strokeLinejoin='round'
+          />
+          <path
+            d='M8 10v4M6 12h4'
+            stroke='currentColor'
+            strokeWidth='2'
+            strokeLinecap='round'
+            strokeLinejoin='round'
+          />
+          <path
+            d='M16 10v4M14 12h4'
+            stroke='currentColor'
+            strokeWidth='2'
             strokeLinecap='round'
             strokeLinejoin='round'
           />

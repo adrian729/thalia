@@ -8,10 +8,11 @@ export const E: NoteName = "E";
 export const F: NoteName = "F";
 export const G: NoteName = "G";
 
-export type NoteAccidental = "b" | "#";
+export type NoteAccidental = "♯" | "♮" | "♭";
 
-export const BEMOL: NoteAccidental = "b";
-export const SHARP: NoteAccidental = "#";
+export const BEMOL: NoteAccidental = "♭";
+export const NATURAL: NoteAccidental = "♮";
+export const SHARP: NoteAccidental = "♯";
 
 export type NoteType = {
   midiId: number;

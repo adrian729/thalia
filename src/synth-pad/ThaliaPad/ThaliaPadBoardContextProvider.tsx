@@ -55,6 +55,7 @@ export function ThaliaPadBoardProvider({ children }: PropsWithChildren) {
     });
   }, [setWetGain, wetGainValue]);
 
+  const [initialMidiId, setInitialMidiId] = useState(36);
   const [detune, setDetune] = useState(0);
 
   return (
@@ -62,6 +63,9 @@ export function ThaliaPadBoardProvider({ children }: PropsWithChildren) {
       value={{
         helperEnabled,
         setHelperEnabled,
+
+        initialMidiId,
+        setInitialMidiId,
 
         oscillatorTypes,
         setOscillatorTypes,
