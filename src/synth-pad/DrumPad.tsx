@@ -1,7 +1,7 @@
 import { ClassValue } from "clsx";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { MainAudioContext } from "../audio-context/MainAudioContext";
-import { cn } from "../utils/styles";
+import { useReverb } from "../audio-context/useReverb";
 import {
   playCymbal1,
   playCymbal2,
@@ -13,7 +13,7 @@ import {
   playTom2,
   playTom3,
 } from "../utils/audio";
-import { useReverb } from "../audio-context/useReverb";
+import { cn } from "../utils/styles";
 
 type DrumPadConfigItem = {
   playInstrument: ({
@@ -89,7 +89,7 @@ export default function DrumPad() {
   const { audioContext, mainNode } = mainAudioContext.state;
   const destinationRef = useRef(new GainNode(audioContext, { gain: 1 }));
   const { dry, wet } = useReverb({
-    irPath: "IR/IR_basement.wav",
+    selectedIR: "basement",
     dryGain: 0.5,
     wetGain: 0.06,
     destination: mainNode,
