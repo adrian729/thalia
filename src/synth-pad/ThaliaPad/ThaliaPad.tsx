@@ -506,13 +506,9 @@ function LeftThaliaPadBoard() {
 
 // #region Right ThaliaPad Board
 function RightThaliaPadOptions() {
-  const {
-    oscillatorTypes,
-    toggleWaveType,
-    reverbEnabled,
-    toggleReverb,
-    setSelectedIR,
-  } = useContext(ThaliaPadBoardContext);
+  const { reverbEnabled, toggleReverb, setSelectedIR } = useContext(
+    ThaliaPadBoardContext
+  );
   const [reverbIdx, setReverbIdx] = useState(1);
   const currentReverb = useMemo(() => reverbs[reverbIdx], [reverbIdx]);
 
