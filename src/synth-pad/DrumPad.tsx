@@ -102,7 +102,7 @@ export default function DrumPad() {
   }, [destinationRef, dry, wet]);
 
   return (
-    <div className='w-xs sm:w-xl p-6 border-2 border-gray-400 rounded-xl grid grid-cols-3 gap-4'>
+    <div className='w-xs aspect-square p-6 border-2 border-gray-400 rounded-xl grid grid-cols-3 gap-4'>
       {drumPadConfig.map((configItem, index) => (
         <DrumPadButton
           key={index}

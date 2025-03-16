@@ -116,6 +116,7 @@ const thaliaConfigItems: ThaliaPadConfigItem[] = [
   },
 ];
 
+// TODO: mirror left/right pad so they are symetric instead of similar to a piano
 const leftKeys: string[][] = [
   ["a"],
   ["q"],
@@ -210,6 +211,16 @@ function PadKeySelectionButtons({
   initialOctaveIndex = 1,
   initialNoteIndex = 0,
   initialAccidentalIndex = 1,
+  nextOctaveKeys,
+  nextNoteKeys,
+  nextAccidentalKeys,
+}: {
+  initialOctaveIndex?: number;
+  initialNoteIndex?: number;
+  initialAccidentalIndex?: number;
+  nextOctaveKeys?: string[];
+  nextNoteKeys?: string[];
+  nextAccidentalKeys?: string[];
 }) {
   const { setInitialMidiId } = useSafeContext(ThaliaPadBoardContext);
   const [octaveIndex, setOctaveIndex] = useState(initialOctaveIndex);
@@ -217,6 +228,7 @@ function PadKeySelectionButtons({
   const [accidentalIndex, setAccidentalIndex] = useState(
     initialAccidentalIndex
   );
+  const [keysPressed, setKeysPressed] = useState<string[]>([]);
 
   useEffect(() => {
     const initialMidiId = 36;
@@ -227,6 +239,61 @@ function PadKeySelectionButtons({
     );
   }, [octaveIndex, noteIndex, accidentalIndex, setInitialMidiId]);
 
+  const setNextOctaveIndex = useCallback(
+    () => setOctaveIndex((prev) => (prev + 1) % 5),
+    [setOctaveIndex]
+  );
+  const setNextNoteIndex = useCallback(
+    () => setNoteIndex((prev) => (prev + 1) % notesNames.length),
+    [setNoteIndex]
+  );
+  const setNextAccidentalIndex = useCallback(
+    () => setAccidentalIndex((prev) => (prev + 1) % accidental.length),
+    [setAccidentalIndex]
+  );
+
+  const keyDownHandler = useCallback(
+    (event: KeyboardEvent) => {
+      const key = event.key.toLowerCase();
+      if (keysPressed.includes(key)) {
+        return;
+      }
+      setKeysPressed((prev) => [...prev, key]);
+      if (nextOctaveKeys?.includes(key)) {
+        setNextOctaveIndex();
+      }
+      if (nextNoteKeys?.includes(key)) {
+        setNextNoteIndex();
+      }
+      if (nextAccidentalKeys?.includes(key)) {
+        setNextAccidentalIndex();
+      }
+    },
+    [
+      keysPressed,
+      nextAccidentalKeys,
+      nextNoteKeys,
+      nextOctaveKeys,
+      setNextAccidentalIndex,
+      setNextNoteIndex,
+      setNextOctaveIndex,
+    ]
+  );
+
+  const keyUpHandler = useCallback((event: KeyboardEvent) => {
+    const key = event.key.toLowerCase();
+    setKeysPressed((prev) => prev.filter((k) => k !== key));
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener("keydown", keyDownHandler);
+    document.addEventListener("keyup", keyUpHandler);
+    return () => {
+      document.removeEventListener("keydown", keyDownHandler);
+      document.removeEventListener("keyup", keyUpHandler);
+    };
+  }, [keyDownHandler, keyUpHandler]);
+
   return (
     <>
       <button
@@ -235,9 +302,7 @@ function PadKeySelectionButtons({
           "cursor-pointer w-9 aspect-square rounded-full bg-gray-300 text-gray-900 font-bold",
           octaveClasses[octaveIndex]
         )}
-        onClick={() => {
-          setOctaveIndex((prev) => (prev + 1) % 5);
-        }}
+        onClick={setNextOctaveIndex}
       >
         <OctaveSymbol index={octaveIndex} />
       </button>
@@ -247,9 +312,7 @@ function PadKeySelectionButtons({
           "cursor-pointer w-9 aspect-square rounded-full bg-gray-300 text-gray-900 font-bold text-xl",
           noteClasses[noteIndex]
         )}
-        onClick={() => {
-          setNoteIndex((prev) => (prev + 1) % notesNames.length);
-        }}
+        onClick={setNextNoteIndex}
       >
         {notesNames[noteIndex]}
       </button>
@@ -260,9 +323,7 @@ function PadKeySelectionButtons({
           accidentalIndex === 1 && "pb-2",
           accidentalClasses[accidentalIndex]
         )}
-        onClick={() => {
-          setAccidentalIndex((prev) => (prev + 1) % accidental.length);
-        }}
+        onClick={setNextAccidentalIndex}
       >
         {accidental[accidentalIndex]}
       </button>
@@ -278,14 +339,69 @@ const reverbs: (IRType | null)[] = [
   "pipe",
 ];
 
+function WaveTypeToggle({
+  waveType,
+  bgColor,
+  textColor,
+  icon,
+}: {
+  waveType: OscillatorType;
+  bgColor: string;
+  textColor: string;
+  icon: JSX.Element;
+}) {
+  const { oscillatorTypes, toggleWaveType } = useContext(ThaliaPadBoardContext);
+
+  return (
+    <button
+      type='button'
+      className={cn(
+        "cursor-pointer w-9 aspect-square rounded bg-gray-300 text-gray-600",
+        oscillatorTypes.includes(waveType) && [bgColor, textColor]
+      )}
+      onClick={() => toggleWaveType(waveType)}
+    >
+      <div className='w-6 mx-auto'>{icon}</div>
+    </button>
+  );
+}
+
+function WaveTypeSelectionOptions() {
+  return (
+    <div className='h-full flex flex-col justify-between items-center gap-2'>
+      <WaveTypeToggle
+        waveType='sine'
+        bgColor='bg-pink-300'
+        textColor='text-pink-900'
+        icon={<SineWaveIcon />}
+      />
+      <WaveTypeToggle
+        waveType='square'
+        bgColor='bg-green-300'
+        textColor='text-green-900'
+        icon={<SquareWaveIcon />}
+      />
+      <WaveTypeToggle
+        waveType='sawtooth'
+        bgColor='bg-yellow-300'
+        textColor='text-yellow-900'
+        icon={<SawtoothWaveIcon />}
+      />
+      <WaveTypeToggle
+        waveType='triangle'
+        bgColor='bg-red-300'
+        textColor='text-red-900'
+        icon={<TriangularWaveIcon />}
+      />
+    </div>
+  );
+}
+
+// #region Left ThaliaPad Board
 function LeftThaliaPadOptions() {
-  const {
-    oscillatorTypes,
-    toggleWaveType,
-    reverbEnabled,
-    toggleReverb,
-    setSelectedIR,
-  } = useContext(ThaliaPadBoardContext);
+  const { reverbEnabled, toggleReverb, setSelectedIR } = useContext(
+    ThaliaPadBoardContext
+  );
   const [reverbIdx, setReverbIdx] = useState(1);
   const currentReverb = useMemo(() => reverbs[reverbIdx], [reverbIdx]);
 
@@ -301,58 +417,6 @@ function LeftThaliaPadOptions() {
   return (
     <div className='p-4 w-fit bg-fuchsia-100 border-r-2 border-y-2 rounded-r-xl border-gray-400 flex flex-col gap-4 justify-between items-center'>
       <div className='w-full grid grid-cols-2 gap-4 justify-center items-center'>
-        <div className='h-full flex flex-col justify-between items-center gap-2'>
-          <button
-            type='button'
-            className={cn(
-              "cursor-pointer w-9 aspect-square rounded bg-gray-300 text-gray-600",
-              oscillatorTypes.includes("sine") && "text-pink-900 bg-pink-300"
-            )}
-            onClick={() => toggleWaveType("sine")}
-          >
-            <div className='w-6 mx-auto'>
-              <SineWaveIcon />
-            </div>
-          </button>
-          <button
-            type='button'
-            className={cn(
-              "cursor-pointer w-9 aspect-square rounded text-gray-900 bg-gray-300",
-              oscillatorTypes.includes("square") &&
-                "text-green-900 bg-green-300"
-            )}
-            onClick={() => toggleWaveType("square")}
-          >
-            <div className='w-6 mx-auto'>
-              <SquareWaveIcon />
-            </div>
-          </button>
-          <button
-            type='button'
-            className={cn(
-              "cursor-pointer w-9 aspect-square rounded text-gray-900 bg-gray-300",
-              oscillatorTypes.includes("sawtooth") &&
-                "text-yellow-900 bg-yellow-300"
-            )}
-            onClick={() => toggleWaveType("sawtooth")}
-          >
-            <div className='w-6 mx-auto'>
-              <SawtoothWaveIcon />
-            </div>
-          </button>
-          <button
-            type='button'
-            className={cn(
-              "cursor-pointer w-9 aspect-square rounded text-gray-900 bg-gray-300",
-              oscillatorTypes.includes("triangle") && "text-red-900 bg-red-300"
-            )}
-            onClick={() => toggleWaveType("triangle")}
-          >
-            <div className='w-6 mx-auto'>
-              <TriangularWaveIcon />
-            </div>
-          </button>
-        </div>
         <div className='h-full flex flex-col justify-between items-center gap-2'>
           <button
             type='button'
@@ -380,8 +444,13 @@ function LeftThaliaPadOptions() {
               <ReverbIcon />
             </div>
           </button>
-          <PadKeySelectionButtons />
+          <PadKeySelectionButtons
+            nextOctaveKeys={["t"]}
+            nextNoteKeys={["g"]}
+            nextAccidentalKeys={["b"]}
+          />
         </div>
+        <WaveTypeSelectionOptions />
       </div>
       <div className='w-full flex justify-end items-end'>
         <ThaliaPadJoystick />
@@ -433,7 +502,9 @@ function LeftThaliaPadBoard() {
     </div>
   );
 }
+// #regionend
 
+// #region Right ThaliaPad Board
 function RightThaliaPadOptions() {
   const {
     oscillatorTypes,
@@ -457,58 +528,7 @@ function RightThaliaPadOptions() {
   return (
     <div className='p-4 w-fit bg-blue-100 border-l-2 border-y-2 rounded-l-xl border-gray-400 flex flex-col gap-4 justify-between items-center'>
       <div className='w-full grid grid-cols-2 gap-4 justify-center items-center'>
-        <div className='h-full flex flex-col justify-between items-center gap-2'>
-          <button
-            type='button'
-            className={cn(
-              "cursor-pointer w-9 aspect-square rounded bg-gray-300 text-gray-600",
-              oscillatorTypes.includes("sine") && "text-pink-900 bg-pink-300"
-            )}
-            onClick={() => toggleWaveType("sine")}
-          >
-            <div className='w-6 mx-auto'>
-              <SineWaveIcon />
-            </div>
-          </button>
-          <button
-            type='button'
-            className={cn(
-              "cursor-pointer w-9 aspect-square rounded text-gray-900 bg-gray-300",
-              oscillatorTypes.includes("square") &&
-                "text-green-900 bg-green-300"
-            )}
-            onClick={() => toggleWaveType("square")}
-          >
-            <div className='w-6 mx-auto'>
-              <SquareWaveIcon />
-            </div>
-          </button>
-          <button
-            type='button'
-            className={cn(
-              "cursor-pointer w-9 aspect-square rounded text-gray-900 bg-gray-300",
-              oscillatorTypes.includes("sawtooth") &&
-                "text-yellow-900 bg-yellow-300"
-            )}
-            onClick={() => toggleWaveType("sawtooth")}
-          >
-            <div className='w-6 mx-auto'>
-              <SawtoothWaveIcon />
-            </div>
-          </button>
-          <button
-            type='button'
-            className={cn(
-              "cursor-pointer w-9 aspect-square rounded text-gray-900 bg-gray-300",
-              oscillatorTypes.includes("triangle") && "text-red-900 bg-red-300"
-            )}
-            onClick={() => toggleWaveType("triangle")}
-          >
-            <div className='w-6 mx-auto'>
-              <TriangularWaveIcon />
-            </div>
-          </button>
-        </div>
+        <WaveTypeSelectionOptions />
         <div className='h-full flex flex-col justify-between items-center gap-2'>
           <button
             type='button'
@@ -536,10 +556,15 @@ function RightThaliaPadOptions() {
               <ReverbIcon />
             </div>
           </button>
-          <PadKeySelectionButtons initialOctaveIndex={2} />
+          <PadKeySelectionButtons
+            initialOctaveIndex={2}
+            nextOctaveKeys={["y"]}
+            nextNoteKeys={["h"]}
+            nextAccidentalKeys={["n"]}
+          />
         </div>
       </div>
-      <div className='w-full flex justify-end items-end'>
+      <div className='w-full flex justify-start items-end'>
         <ThaliaPadJoystick />
       </div>
     </div>
@@ -589,6 +614,7 @@ function RightThaliaPadBoard() {
     </div>
   );
 }
+// #regionend
 
 // #region ThaliaPad
 export default function ThaliaPad() {

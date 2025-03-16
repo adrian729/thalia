@@ -23,12 +23,13 @@ function App() {
   }
 
   return (
-    <div className='w-full h-screen flex justify-center items-center bg-gray-100'>
-      <div className='flex flex-col justify-center items-center gap-4'>
-        <ThaliaPad />
-        <div className='border-b-2 border-gray-500 w-full'></div>
-        <DrumPad />
-        <div className='border-b-2 border-gray-500 w-full'></div>
+    <div className='w-full h-screen bg-gray-100'>
+      <div className='w-full h-full flex justify-center items-center'>
+        <div className='flex flex-col justify-center items-center gap-4'>
+          <DrumPad />
+          <div className='border-b-2 border-gray-500 w-full'></div>
+          <ThaliaPad />
+        </div>
       </div>
     </div>
   );
