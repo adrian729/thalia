@@ -1,9 +1,9 @@
 import eslint from '@eslint/js';
+import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
-
 
 export default tseslint.config(
   eslint.configs.recommended,
@@ -28,14 +28,14 @@ export default tseslint.config(
     settings: {
       // for eslint-plugin-react to auto detect react version
       react: {
-        version: 'detect'
+        version: 'detect',
       },
       // for eslint-plugin-import to use import alias
       'import/resolver': {
         typescript: {
-          project: './tsconfig.json'
-        }
-      }
+          project: './tsconfig.json',
+        },
+      },
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
@@ -46,9 +46,13 @@ export default tseslint.config(
       indent: ['error', 2],
       quotes: ['error', 'single', { avoidEscape: true }],
       semi: ['error', 'always'],
-      'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-      'react-hooks/rules-of-hooks': 'error',
     },
-  }
+  },
+  eslintPluginPrettierRecommended,
+  // Overwrite rules from eslintPluginPrettierRecommended
+  {
+    'no-unused-vars': 'off',
+    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    'react-hooks/rules-of-hooks': 'error',
+  },
 );
