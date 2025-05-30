@@ -1,25 +1,24 @@
-import { useRef, useEffect, useCallback } from "react";
-import { setGainValueAtTime } from "../utils/audio";
+import { useCallback, useEffect, useRef } from 'react';
+import { setGainValueAtTime } from '../utils/audio';
 
 const IRs = {
   church: {
-    path: "IR_church.wav",
+    path: 'IR_church.wav',
     gainFactor: 1,
   },
   basement: {
-    path: "IR_basement.wav",
+    path: 'IR_basement.wav',
     gainFactor: 1,
   },
   bathroom: {
-    path: "IR_bathroom.wav",
+    path: 'IR_bathroom.wav',
     gainFactor: 5.0,
   },
   pipe: {
-    path: "IR_pipe.wav",
+    path: 'IR_pipe.wav',
     gainFactor: 5.0,
   },
 };
-
 export type IRType = keyof typeof IRs;
 
 function getIRPath(selectedIR: IRType) {
@@ -27,7 +26,7 @@ function getIRPath(selectedIR: IRType) {
 }
 
 export function useReverb({
-  selectedIR = "basement",
+  selectedIR = 'basement',
   dryGain = 0.5,
   wetGain = 0.5,
   destination,
@@ -46,16 +45,16 @@ export function useReverb({
   setSelectedIR: (selectedIR: IRType) => void;
 } {
   const dryGainRef = useRef<GainNode>(
-    new GainNode(audioContext, { gain: dryGain })
+    new GainNode(audioContext, { gain: dryGain }),
   );
   const IRFactorGainRef = useRef<GainNode>(
-    new GainNode(audioContext, { gain: IRs[selectedIR].gainFactor })
+    new GainNode(audioContext, { gain: IRs[selectedIR].gainFactor }),
   );
   const wetGainRef = useRef<GainNode>(
-    new GainNode(audioContext, { gain: wetGain })
+    new GainNode(audioContext, { gain: wetGain }),
   );
   const convolverRef = useRef<ConvolverNode>(
-    new ConvolverNode(audioContext, { buffer: null })
+    new ConvolverNode(audioContext, { buffer: null }),
   );
 
   useEffect(() => {
@@ -74,6 +73,7 @@ export function useReverb({
 
   const setSelectedIR = useCallback(
     async (selectedIR: IRType) => {
+      console.info('Setting selected IR:', selectedIR);
       fetch(getIRPath(selectedIR)).then((response) =>
         response.arrayBuffer().then((buffer) => {
           audioContext.decodeAudioData(buffer).then((audioBuffer) => {
@@ -85,10 +85,10 @@ export function useReverb({
               audioContext,
             });
           });
-        })
+        }),
       );
     },
-    [audioContext, convolverRef, IRFactorGainRef]
+    [audioContext, convolverRef, IRFactorGainRef],
   );
 
   useEffect(() => {

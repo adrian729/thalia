@@ -1,5 +1,5 @@
-import { createContext } from "react";
-import { AudioSetup } from "./types";
+import { createContext } from 'react';
+import { AudioSetup } from './types';
 
 const defaultAudioContext = new AudioContext();
 export type MainAudioContextType = {

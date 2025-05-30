@@ -1,18 +1,18 @@
-export type NoteName = "C" | "D" | "E" | "F" | "G" | "A" | "B";
+export type NoteName = 'C' | 'D' | 'E' | 'F' | 'G' | 'A' | 'B';
 
-export const A: NoteName = "A";
-export const B: NoteName = "B";
-export const C: NoteName = "C";
-export const D: NoteName = "D";
-export const E: NoteName = "E";
-export const F: NoteName = "F";
-export const G: NoteName = "G";
+export const A: NoteName = 'A';
+export const B: NoteName = 'B';
+export const C: NoteName = 'C';
+export const D: NoteName = 'D';
+export const E: NoteName = 'E';
+export const F: NoteName = 'F';
+export const G: NoteName = 'G';
 
-export type NoteAccidental = "♯" | "♮" | "♭";
+export type NoteAccidental = '♯' | '♮' | '♭';
 
-export const BEMOL: NoteAccidental = "♭";
-export const NATURAL: NoteAccidental = "♮";
-export const SHARP: NoteAccidental = "♯";
+export const BEMOL: NoteAccidental = '♭';
+export const NATURAL: NoteAccidental = '♮';
+export const SHARP: NoteAccidental = '♯';
 
 export type NoteType = {
   midiId: number;

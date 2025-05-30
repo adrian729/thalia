@@ -1,14 +1,20 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   mapCircleToSquare,
   mapSquareToCircle,
   scale,
   Vec2,
-} from "../../utils/math";
-import useSafeContext from "../../utils/useSafeContext";
-import { ThaliaPadBoardContext } from "./ThaliaPadBoardContext";
+} from '../../utils/math';
 
-const ArrowKeys = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"] as const;
+const ArrowKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'] as const;
 type ArrowKey = (typeof ArrowKeys)[number];
 function isArrowKey(key: unknown): key is ArrowKey {
   return ArrowKeys.includes(key as ArrowKey);
@@ -34,14 +40,14 @@ const defaultBox = {
  */
 function pitchCoordsFromPressedArrowKeys(pressedArrowKeys: ArrowKey[]) {
   const coords = { x: 0, y: 0 };
-  if (pressedArrowKeys.includes("ArrowLeft")) {
+  if (pressedArrowKeys.includes('ArrowLeft')) {
     coords.x = -1;
-  } else if (pressedArrowKeys.includes("ArrowRight")) {
+  } else if (pressedArrowKeys.includes('ArrowRight')) {
     coords.x = 1;
   }
-  if (pressedArrowKeys.includes("ArrowUp")) {
+  if (pressedArrowKeys.includes('ArrowUp')) {
     coords.y = 1;
-  } else if (pressedArrowKeys.includes("ArrowDown")) {
+  } else if (pressedArrowKeys.includes('ArrowDown')) {
     coords.y = -1;
   }
   return coords;
@@ -78,7 +84,7 @@ function relativeCoordsToPitchCoords(relativeCoords: Vec2, container: Box) {
   return mapCircleToSquare(
     { x: x - 0.5 * width, y: -y + 0.5 * width },
     radius,
-    squareSize
+    squareSize,
   );
 }
 
@@ -90,7 +96,7 @@ function clientCoordsToPitchCoords(clientCoords: Vec2, containerBox: Box) {
       x: x - left,
       y: y - top,
     },
-    containerBox
+    containerBox,
   );
 }
 
@@ -112,9 +118,11 @@ function getOctaveDetune(val: number) {
   return val * 1200;
 }
 
-export function ThaliaPadJoystick() {
-  const { setDetune } = useSafeContext(ThaliaPadBoardContext);
-
+export function ThaliaPadJoystick({
+  setDetune,
+}: {
+  setDetune: Dispatch<SetStateAction<number>>;
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerBox, setContainerBox] = useState<Box>({ ...defaultBox });
   const tipRef = useRef<HTMLDivElement>(null);
@@ -123,7 +131,7 @@ export function ThaliaPadJoystick() {
   const [pitchCoords, setPitchCoords] = useState<Vec2>({ x: 0, y: 0 }); // -- square, P = {(x, y) | x, y in [-1, 1]}
   const relativeCoords = useMemo(
     () => pitchCoordsToRelativeCoords(pitchCoords, containerBox),
-    [containerBox, pitchCoords]
+    [containerBox, pitchCoords],
   );
 
   useEffect(() => {
@@ -157,10 +165,10 @@ export function ThaliaPadJoystick() {
       }
     };
 
-    window.addEventListener("resize", handleResize);
+    window.addEventListener('resize', handleResize);
     handleResize();
 
-    return () => window.removeEventListener("resize", handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const [pressedArrowKeys, setPressedArrowKeys] = useState<ArrowKey[]>([]);
@@ -186,11 +194,11 @@ export function ThaliaPadJoystick() {
       if (isDragging) {
         const { clientX, clientY } = event;
         setPitchCoords(
-          clientCoordsToPitchCoords({ x: clientX, y: clientY }, containerBox)
+          clientCoordsToPitchCoords({ x: clientX, y: clientY }, containerBox),
         );
       }
     },
-    [containerBox, isDragging]
+    [containerBox, isDragging],
   );
 
   const mouseUpHandler = useCallback(() => {
@@ -198,15 +206,15 @@ export function ThaliaPadJoystick() {
   }, []);
 
   useEffect(() => {
-    document.addEventListener("keydown", keyDownHandler);
-    document.addEventListener("keyup", keyUpHandler);
-    document.addEventListener("mousemove", mouseMoveHandler);
-    document.addEventListener("mouseup", mouseUpHandler);
+    document.addEventListener('keydown', keyDownHandler);
+    document.addEventListener('keyup', keyUpHandler);
+    document.addEventListener('mousemove', mouseMoveHandler);
+    document.addEventListener('mouseup', mouseUpHandler);
     return () => {
-      document.removeEventListener("keydown", keyDownHandler);
-      document.removeEventListener("keyup", keyUpHandler);
-      document.removeEventListener("mousemove", mouseMoveHandler);
-      document.removeEventListener("mouseup", mouseUpHandler);
+      document.removeEventListener('keydown', keyDownHandler);
+      document.removeEventListener('keyup', keyUpHandler);
+      document.removeEventListener('mousemove', mouseMoveHandler);
+      document.removeEventListener('mouseup', mouseUpHandler);
     };
   }, [keyDownHandler, keyUpHandler, mouseMoveHandler, mouseUpHandler]);
 
@@ -222,7 +230,7 @@ export function ThaliaPadJoystick() {
         onMouseDown={(event) => {
           const { clientX, clientY } = event;
           setPitchCoords(
-            clientCoordsToPitchCoords({ x: clientX, y: clientY }, containerBox)
+            clientCoordsToPitchCoords({ x: clientX, y: clientY }, containerBox),
           );
           setIsDragging(true);
         }}

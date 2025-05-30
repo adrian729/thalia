@@ -1,19 +1,9 @@
-import { createContext, Dispatch, SetStateAction } from "react";
-import { IRType } from "../../audio-context/useReverb";
+import { createContext, Dispatch, SetStateAction } from 'react';
+import { IRType } from '../../audio-context/useReverb';
 
 const defaultAudioContext = new AudioContext();
 
-type ThaliaPadBoardContextType = {
-  helperEnabled: boolean;
-  setHelperEnabled: Dispatch<SetStateAction<boolean>>;
-
-  initialMidiId: number;
-  setInitialMidiId: Dispatch<SetStateAction<number>>;
-
-  oscillatorTypes: OscillatorType[];
-  setOscillatorTypes: Dispatch<SetStateAction<OscillatorType[]>>;
-  toggleWaveType: (oscillatorType: OscillatorType) => void;
-
+interface ThaliaPadBoardContextType {
   reverbEnabled: boolean;
   setReverbEnabled: Dispatch<SetStateAction<boolean>>;
   toggleReverb: () => void;
@@ -24,18 +14,8 @@ type ThaliaPadBoardContextType = {
 
   audioContext: AudioContext;
   destination: AudioNode;
-};
+}
 export const ThaliaPadBoardContext = createContext<ThaliaPadBoardContextType>({
-  helperEnabled: false,
-  setHelperEnabled: () => {},
-
-  initialMidiId: 36,
-  setInitialMidiId: () => {},
-
-  oscillatorTypes: ["sine", "square", "sawtooth", "triangle"],
-  setOscillatorTypes: () => {},
-  toggleWaveType: () => {},
-
   reverbEnabled: false,
   setReverbEnabled: () => {},
   toggleReverb: () => {},

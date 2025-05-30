@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
-import { AudioSetup } from "./types";
+import { useEffect, useRef } from 'react';
+import { AudioSetup } from './types';
 
 export function useAudioSetup({
   sampleRate = 48000,
@@ -7,10 +7,10 @@ export function useAudioSetup({
   sampleRate?: number;
 }): AudioSetup {
   const audioContextRef = useRef<AudioContext>(
-    new AudioContext({ sampleRate })
+    new AudioContext({ sampleRate }),
   );
   const gainNodeRef = useRef<GainNode>(
-    new GainNode(audioContextRef.current, { gain: 1 })
+    new GainNode(audioContextRef.current, { gain: 1 }),
   );
 
   useEffect(() => {

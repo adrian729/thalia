@@ -12,7 +12,7 @@ export function setGainValueAtTime({
   gainNode.gain.setValueAtTime(gainNode.gain.value, audioContext.currentTime);
   gainNode.gain.exponentialRampToValueAtTime(
     gain > 0.001 ? gain : 0.001,
-    audioContext.currentTime + timeElapse
+    audioContext.currentTime + timeElapse,
   );
 }
 
@@ -21,7 +21,7 @@ export function createNoiseBuffer(audioContext: AudioContext) {
   const buffer = audioContext.createBuffer(
     1,
     bufferSize,
-    audioContext.sampleRate
+    audioContext.sampleRate,
   );
   const output = buffer.getChannelData(0);
 
@@ -33,7 +33,7 @@ export function createNoiseBuffer(audioContext: AudioContext) {
 function playSynthOscillator({
   gain = 1.0,
   frequency,
-  oscillatorType = "sine",
+  oscillatorType = 'sine',
   duration = 0.5,
   audioContext,
   destination,
@@ -67,7 +67,7 @@ export function playSynth({
   duration = 0.5,
   audioContext,
   destination,
-  oscillatorTypes = ["sine", "square", "sawtooth", "triangle"],
+  oscillatorTypes = ['sine', 'square', 'sawtooth', 'triangle'],
 }: {
   gain?: number;
   frequency: number;
@@ -85,7 +85,7 @@ export function playSynth({
   gainControl.gain.exponentialRampToValueAtTime(0.001, currentTime + duration);
   gainControl.connect(destination);
 
-  if (oscillatorTypes.includes("sine")) {
+  if (oscillatorTypes.includes('sine')) {
     playSynthOscillator({
       gain: 2 / numOscillators,
       frequency: currentFrequency,
@@ -95,33 +95,33 @@ export function playSynth({
     });
   }
 
-  if (oscillatorTypes.includes("square")) {
+  if (oscillatorTypes.includes('square')) {
     playSynthOscillator({
       gain: 0.3 / numOscillators,
       frequency: currentFrequency,
-      oscillatorType: "square",
+      oscillatorType: 'square',
       duration,
       audioContext,
       destination: gainControl,
     });
   }
 
-  if (oscillatorTypes.includes("sawtooth")) {
+  if (oscillatorTypes.includes('sawtooth')) {
     playSynthOscillator({
       gain: 0.3 / numOscillators,
       frequency: currentFrequency,
-      oscillatorType: "sawtooth",
+      oscillatorType: 'sawtooth',
       duration,
       audioContext,
       destination: gainControl,
     });
   }
 
-  if (oscillatorTypes.includes("triangle")) {
+  if (oscillatorTypes.includes('triangle')) {
     playSynthOscillator({
       gain: 2 / numOscillators,
       frequency: currentFrequency,
-      oscillatorType: "triangle",
+      oscillatorType: 'triangle',
       duration,
       audioContext,
       destination: gainControl,
@@ -153,18 +153,18 @@ export function playKick({
   kickOscillator.frequency.setValueAtTime(150, currentTime);
   kickOscillator.frequency.exponentialRampToValueAtTime(
     0.001,
-    currentTime + 0.5
+    currentTime + 0.5,
   );
 
   // Rand Oscillator (to give some color between hits)
   const randOscillator = audioContext.createOscillator();
   randOscillator.frequency.setValueAtTime(
     100 + 100 * Math.random(),
-    currentTime
+    currentTime,
   );
   randOscillator.frequency.exponentialRampToValueAtTime(
     0.001,
-    currentTime + 0.5
+    currentTime + 0.5,
   );
 
   const kickGain = audioContext.createGain();
@@ -180,7 +180,7 @@ export function playKick({
   noiseSource.buffer = createNoiseBuffer(audioContext);
 
   const noiseFilter = audioContext.createBiquadFilter();
-  noiseFilter.type = "lowpass";
+  noiseFilter.type = 'lowpass';
   noiseFilter.frequency.value = 100;
 
   const noiseEnvelope = audioContext.createGain();
@@ -218,7 +218,7 @@ export function playSnare({
   snareSource.buffer = createNoiseBuffer(audioContext);
 
   const snareFilter = audioContext.createBiquadFilter();
-  snareFilter.type = "highpass";
+  snareFilter.type = 'highpass';
   snareFilter.frequency.value = 1000;
 
   snareSource.connect(snareFilter);
@@ -228,7 +228,7 @@ export function playSnare({
   snareEnvelope.connect(gainControl);
 
   const snareOscillator = audioContext.createOscillator();
-  snareOscillator.type = "triangle";
+  snareOscillator.type = 'triangle';
 
   const oscillatorEnvelope = audioContext.createGain();
   snareOscillator.connect(oscillatorEnvelope);
@@ -241,7 +241,7 @@ export function playSnare({
 
   snareOscillator.frequency.setValueAtTime(
     100 + 15 * Math.random(),
-    currentTime
+    currentTime,
   );
   oscillatorEnvelope.gain.setValueAtTime(0.7, currentTime);
   oscillatorEnvelope.gain.exponentialRampToValueAtTime(0.01, currentTime + 0.1);
@@ -272,11 +272,11 @@ export function playHihat({
 
   // Bandpass
   const bandpass = audioContext.createBiquadFilter();
-  bandpass.type = "bandpass";
+  bandpass.type = 'bandpass';
   bandpass.frequency.value = 10000;
   // Highpass
   const highpass = audioContext.createBiquadFilter();
-  highpass.type = "highpass";
+  highpass.type = 'highpass';
   highpass.frequency.value = 7000;
   // Connect graph
   bandpass.connect(highpass);
@@ -286,7 +286,7 @@ export function playHihat({
   // Oscillators
   ratios.forEach((ratio) => {
     const osc = audioContext.createOscillator();
-    osc.type = "square";
+    osc.type = 'square';
     osc.frequency.value = fundamental * ratio;
     osc.connect(bandpass);
     osc.start(currentTime);
@@ -321,11 +321,11 @@ export function playCymbal1({
 
   // Bandpass
   const bandpass = audioContext.createBiquadFilter();
-  bandpass.type = "bandpass";
+  bandpass.type = 'bandpass';
   bandpass.frequency.value = 8000;
   // Highpass
   const highpass = audioContext.createBiquadFilter();
-  highpass.type = "highpass";
+  highpass.type = 'highpass';
   highpass.frequency.value = 7000;
   // Connect graph
   bandpass.connect(highpass);
@@ -335,7 +335,7 @@ export function playCymbal1({
   // Oscillators
   ratios.forEach((ratio) => {
     const osc = audioContext.createOscillator();
-    osc.type = "square";
+    osc.type = 'square';
     osc.frequency.value = fundamental * ratio;
     osc.connect(bandpass);
     osc.start(currentTime);
@@ -370,11 +370,11 @@ export function playCymbal2({
 
   // Bandpass
   const bandpass = audioContext.createBiquadFilter();
-  bandpass.type = "bandpass";
+  bandpass.type = 'bandpass';
   bandpass.frequency.value = 10000;
   // Highpass
   const highpass = audioContext.createBiquadFilter();
-  highpass.type = "highpass";
+  highpass.type = 'highpass';
   highpass.frequency.value = 7000;
   // Connect graph
   bandpass.connect(highpass);
@@ -384,7 +384,7 @@ export function playCymbal2({
   // Oscillators
   ratios.forEach((ratio) => {
     const osc = audioContext.createOscillator();
-    osc.type = "square";
+    osc.type = 'square';
     osc.frequency.value = fundamental * ratio;
     osc.connect(bandpass);
     osc.start(currentTime);
@@ -419,11 +419,11 @@ export function playCymbal3({
 
   // Bandpass
   const bandpass = audioContext.createBiquadFilter();
-  bandpass.type = "bandpass";
+  bandpass.type = 'bandpass';
   bandpass.frequency.value = 5000;
   // Highpass
   const highpass = audioContext.createBiquadFilter();
-  highpass.type = "highpass";
+  highpass.type = 'highpass';
   highpass.frequency.value = 3000;
   // Connect graph
   bandpass.connect(highpass);
@@ -433,7 +433,7 @@ export function playCymbal3({
   // Oscillators
   ratios.forEach((ratio) => {
     const osc = audioContext.createOscillator();
-    osc.type = "square";
+    osc.type = 'square';
     osc.frequency.value = fundamental * ratio;
     osc.connect(bandpass);
     osc.start(currentTime);
@@ -461,11 +461,11 @@ export function playTom1({
   gainControl.connect(destination);
 
   const tomFilter = audioContext.createBiquadFilter();
-  tomFilter.type = "highpass";
+  tomFilter.type = 'highpass';
   tomFilter.frequency.value = 1500;
 
   const tomOscillator = audioContext.createOscillator();
-  tomOscillator.type = "triangle";
+  tomOscillator.type = 'triangle';
   tomOscillator.frequency.setValueAtTime(150 + 1 * Math.random(), currentTime);
 
   const tomGain = audioContext.createGain();
@@ -494,11 +494,11 @@ export function playTom2({
   gainControl.connect(destination);
 
   const tomFilter = audioContext.createBiquadFilter();
-  tomFilter.type = "highpass";
+  tomFilter.type = 'highpass';
   tomFilter.frequency.value = 1500;
 
   const tomOscillator = audioContext.createOscillator();
-  tomOscillator.type = "triangle";
+  tomOscillator.type = 'triangle';
   tomOscillator.frequency.setValueAtTime(120 + 5 * Math.random(), currentTime);
   tomOscillator.frequency.exponentialRampToValueAtTime(80, currentTime + 0.1);
 
@@ -529,12 +529,12 @@ export function playTom3({
   gainControl.connect(destination);
 
   const tomFilter = audioContext.createBiquadFilter();
-  tomFilter.type = "lowpass";
+  tomFilter.type = 'lowpass';
   tomFilter.frequency.setValueAtTime(300 + 20 * Math.random(), currentTime);
   tomFilter.frequency.linearRampToValueAtTime(50, currentTime + 0.5);
 
   const tomOscillator = audioContext.createOscillator();
-  tomOscillator.type = "triangle";
+  tomOscillator.type = 'triangle';
   tomOscillator.frequency.setValueAtTime(50 + 1 * Math.random(), currentTime);
 
   const tomGain = audioContext.createGain();
@@ -557,7 +557,7 @@ export function playTom3({
   noiseSource.buffer = createNoiseBuffer(audioContext);
 
   const noiseFilter = audioContext.createBiquadFilter();
-  noiseFilter.type = "lowpass";
+  noiseFilter.type = 'lowpass';
   noiseFilter.frequency.value = 500;
 
   const noiseEnvelope = audioContext.createGain();

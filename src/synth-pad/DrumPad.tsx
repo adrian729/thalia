@@ -1,7 +1,7 @@
-import { ClassValue } from "clsx";
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
-import { MainAudioContext } from "../audio-context/MainAudioContext";
-import { useReverb } from "../audio-context/useReverb";
+import { ClassValue } from 'clsx';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { MainAudioContext } from '../audio-context/MainAudioContext';
+import { useReverb } from '../audio-context/useReverb';
 import {
   playCymbal1,
   playCymbal2,
@@ -12,8 +12,8 @@ import {
   playTom1,
   playTom2,
   playTom3,
-} from "../utils/audio";
-import { cn } from "../utils/styles";
+} from '../utils/audio';
+import { cn } from '../utils/styles';
 
 type DrumPadConfigItem = {
   playInstrument: ({
@@ -30,57 +30,57 @@ type DrumPadConfigItem = {
 const drumPadConfig: DrumPadConfigItem[] = [
   {
     playInstrument: playCymbal1,
-    extraClasses: "bg-violet-300",
-    playingClasses: "bg-violet-100",
-    keys: ["7"],
+    extraClasses: 'bg-violet-300',
+    playingClasses: 'bg-violet-100',
+    keys: ['7'],
   },
   {
     playInstrument: playCymbal2,
-    extraClasses: "bg-indigo-300",
-    playingClasses: "bg-indigo-100",
-    keys: ["8"],
+    extraClasses: 'bg-indigo-300',
+    playingClasses: 'bg-indigo-100',
+    keys: ['8'],
   },
   {
     playInstrument: playCymbal3,
-    extraClasses: "bg-red-300",
-    playingClasses: "bg-red-100",
-    keys: ["9"],
+    extraClasses: 'bg-red-300',
+    playingClasses: 'bg-red-100',
+    keys: ['9'],
   },
   {
     playInstrument: playTom1,
-    extraClasses: "bg-emerald-300",
-    playingClasses: "bg-emerald-100",
-    keys: ["4"],
+    extraClasses: 'bg-emerald-300',
+    playingClasses: 'bg-emerald-100',
+    keys: ['4'],
   },
   {
     playInstrument: playTom2,
-    extraClasses: "bg-lime-300",
-    playingClasses: "bg-lime-100",
-    keys: ["5"],
+    extraClasses: 'bg-lime-300',
+    playingClasses: 'bg-lime-100',
+    keys: ['5'],
   },
   {
     playInstrument: playTom3,
-    extraClasses: "bg-yellow-300",
-    playingClasses: "bg-yellow-100",
-    keys: ["6"],
+    extraClasses: 'bg-yellow-300',
+    playingClasses: 'bg-yellow-100',
+    keys: ['6'],
   },
   {
     playInstrument: playKick,
-    extraClasses: "bg-orange-300",
-    playingClasses: "bg-orange-100",
-    keys: ["1"],
+    extraClasses: 'bg-orange-300',
+    playingClasses: 'bg-orange-100',
+    keys: ['1'],
   },
   {
     playInstrument: playSnare,
-    extraClasses: "bg-sky-300",
-    playingClasses: "bg-sky-100",
-    keys: ["2"],
+    extraClasses: 'bg-sky-300',
+    playingClasses: 'bg-sky-100',
+    keys: ['2'],
   },
   {
     playInstrument: playHihat,
-    extraClasses: "bg-pink-300",
-    playingClasses: "bg-pink-100",
-    keys: ["3"],
+    extraClasses: 'bg-pink-300',
+    playingClasses: 'bg-pink-100',
+    keys: ['3'],
   },
 ] as const;
 
@@ -89,7 +89,7 @@ export default function DrumPad() {
   const { audioContext, mainNode } = mainAudioContext.state;
   const destinationRef = useRef(new GainNode(audioContext, { gain: 1 }));
   const { dry, wet } = useReverb({
-    selectedIR: "basement",
+    selectedIR: 'basement',
     dryGain: 0.5,
     wetGain: 0.06,
     destination: mainNode,
@@ -137,7 +137,7 @@ function DrumPadButton({
         });
       }
     },
-    [audioContext, destination, keys, playInstrument]
+    [audioContext, destination, keys, playInstrument],
   );
 
   const keyUpHandler = useCallback(
@@ -146,15 +146,15 @@ function DrumPadButton({
         setIsPlaying(false);
       }
     },
-    [keys]
+    [keys],
   );
 
   useEffect(() => {
-    document.addEventListener("keydown", keyDownHandler);
-    document.addEventListener("keyup", keyUpHandler);
+    document.addEventListener('keydown', keyDownHandler);
+    document.addEventListener('keyup', keyUpHandler);
     return () => {
-      document.removeEventListener("keydown", keyDownHandler);
-      document.removeEventListener("keyup", keyUpHandler);
+      document.removeEventListener('keydown', keyDownHandler);
+      document.removeEventListener('keyup', keyUpHandler);
     };
   }, [keyDownHandler, keyUpHandler]);
 
@@ -162,7 +162,7 @@ function DrumPadButton({
     <button
       type='button'
       className={cn([
-        "cursor-pointer w-full aspect-square bg-gray-300 rounded",
+        'cursor-pointer w-full aspect-square bg-gray-300 rounded',
         extraClasses,
         isPlaying && playingClasses,
       ])}

@@ -1,4 +1,4 @@
 export type AudioSetup = {
-    audioContext: AudioContext;
-    mainNode: AudioNode;
-}
+  audioContext: AudioContext;
+  mainNode: AudioNode;
+};

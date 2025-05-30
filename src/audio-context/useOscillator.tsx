@@ -1,5 +1,5 @@
-import { MainAudioContext } from "./MainAudioContext";
-import useSafeContext from "../utils/useSafeContext";
+import { MainAudioContext } from './MainAudioContext';
+import useSafeContext from '../utils/useSafeContext';
 
 type UseOscillatorProps = {
   gain?: number;
@@ -19,7 +19,7 @@ const epsilon = 0.03;
 
 export function useOscillator({
   frequency,
-  type = "sine",
+  type = 'sine',
   destination,
 }: UseOscillatorProps): UseOscillatorType {
   const {
@@ -29,7 +29,7 @@ export function useOscillator({
   return {
     start: ({ gain, detune = 0 }: { gain: number; detune?: number }) => {
       if (frequency < 20 || frequency > 20000) {
-        throw new Error("Frequency must be between 20 and 20000 Hz");
+        throw new Error('Frequency must be between 20 and 20000 Hz');
       }
 
       const currentTime = audioContext.currentTime;
@@ -52,14 +52,17 @@ export function useOscillator({
         gainNode.gain.setValueAtTime(gain, currentTime);
         gainNode.gain.exponentialRampToValueAtTime(
           0.001,
-          currentTime + epsilon
+          currentTime + epsilon,
         );
 
         oscillator?.stop(currentTime + 2 * epsilon);
-        setTimeout(() => {
-          oscillator?.disconnect();
-          gainNode?.disconnect();
-        }, 2 * epsilon * 1000);
+        setTimeout(
+          () => {
+            oscillator?.disconnect();
+            gainNode?.disconnect();
+          },
+          2 * epsilon * 1000,
+        );
       };
 
       return { oscillator, stop };
