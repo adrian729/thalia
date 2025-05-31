@@ -12,8 +12,7 @@ import { useReverb } from '../../audio-context/useReverb';
 import { notes } from '../../utils/notes';
 import { cn } from '../../utils/styles';
 import {
-  LeftThaliaPadOptions,
-  RightThaliaPadOptions,
+  ThaliaPadOptions
 } from './ThaliaPadOptions';
 import {
   INITIAL_MIDI_ID,
@@ -67,7 +66,8 @@ export default function ThaliaPad({
   return (
     <div className='h-fit flex'>
       {optionsPosition === 'left' && (
-        <LeftThaliaPadOptions
+        <ThaliaPadOptions
+          optionsPosition={optionsPosition}
           setInitialMidiId={setInitialMidiId}
           enabledOscillatorTypes={enabledOscillatorTypes}
           setEnabledOscillatorTypes={setEnabledOscillatorTypes}
@@ -138,15 +138,16 @@ export default function ThaliaPad({
         </div>
       </div>
       {optionsPosition === 'right' && (
-        <RightThaliaPadOptions
-          setInitialMidiId={setInitialMidiId}
-          enabledOscillatorTypes={enabledOscillatorTypes}
-          setEnabledOscillatorTypes={setEnabledOscillatorTypes}
-          reverbEnabled={reverbEnabled}
-          toggleReverb={toggleReverb}
-          setSelectedIR={setSelectedIR}
-          setDetune={setDetune}
-        />
+        <ThaliaPadOptions
+        optionsPosition={optionsPosition}
+        setInitialMidiId={setInitialMidiId}
+        enabledOscillatorTypes={enabledOscillatorTypes}
+        setEnabledOscillatorTypes={setEnabledOscillatorTypes}
+        reverbEnabled={reverbEnabled}
+        toggleReverb={toggleReverb}
+        setSelectedIR={setSelectedIR}
+        setDetune={setDetune}
+      />
       )}
     </div>
   );

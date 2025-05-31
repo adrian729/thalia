@@ -31,8 +31,10 @@ import {
   OCTAVE_CLASSES,
   REVERB_TYPES,
 } from './constants';
+import { Position } from './types';
 
 interface ThaliaPadOptionsProps {
+  optionsPosition?: Position;
   setInitialMidiId: Dispatch<SetStateAction<number>>;
   enabledOscillatorTypes: OscillatorType[];
   setEnabledOscillatorTypes: Dispatch<SetStateAction<OscillatorType[]>>;
@@ -42,7 +44,9 @@ interface ThaliaPadOptionsProps {
   setDetune: Dispatch<SetStateAction<number>>;
 }
 
-export function LeftThaliaPadOptions({
+
+export function ThaliaPadOptions({
+  optionsPosition = 'left',
   setInitialMidiId,
   enabledOscillatorTypes,
   setEnabledOscillatorTypes,
@@ -63,13 +67,28 @@ export function LeftThaliaPadOptions({
     }
   }, [currentReverb, reverbEnabled, toggleReverb]);
 
+  const selectNextReverb = useCallback(() => {
+    setReverbIdx((prevIdx) => {
+      const newIdx = (prevIdx + 1) % REVERB_TYPES.length;
+      const nextReverb = REVERB_TYPES[newIdx];
+      if (nextReverb) {
+        setSelectedIR(nextReverb);
+      }
+      return newIdx;
+    });
+  }, [setReverbIdx, setSelectedIR]);
+
   return (
-    <div className='p-4 w-fit bg-blue-100 border-l-2 border-y-2 rounded-l-xl border-gray-400 flex flex-col gap-4 justify-between items-center'>
+    <div className={cn(
+        'p-4 w-fit border-y-2 border-gray-400 flex flex-col gap-4 justify-between items-center',
+        optionsPosition === 'left' && 'bg-blue-100 border-l-2 rounded-l-xl',
+        optionsPosition === 'right' && 'bg-fuchsia-100 border-r-2 rounded-r-xl',
+      )}>
       <div className='w-full grid grid-cols-2 gap-4 justify-center items-center'>
-        <WaveTypeSelectionOptions
+        {optionsPosition === 'left' && (<WaveTypeSelectionOptions
           enabledOscillatorTypes={enabledOscillatorTypes}
           setEnabledOscillatorTypes={setEnabledOscillatorTypes}
-        />
+        />)}
         <div className='h-full flex flex-col justify-between items-center gap-2'>
           <button
             type='button'
@@ -82,16 +101,7 @@ export function LeftThaliaPadOptions({
                     'text-purple-900 bg-purple-300') ||
                   (currentReverb === 'pipe' && 'text-pink-900 bg-pink-300')),
             )}
-            onClick={() => {
-              setReverbIdx((prevIdx) => {
-                const newIdx = (prevIdx + 1) % REVERB_TYPES.length;
-                const nextReverb = REVERB_TYPES[newIdx];
-                if (nextReverb) {
-                  setSelectedIR(nextReverb);
-                }
-                return newIdx;
-              });
-            }}
+            onClick={selectNextReverb}
           >
             <div className='w-5 mx-auto'>
               <ReverbIcon />
@@ -105,78 +115,12 @@ export function LeftThaliaPadOptions({
             setInitialMidiId={setInitialMidiId}
           />
         </div>
-      </div>
-      <div className='w-full flex justify-start items-end'>
-        <ThaliaPadJoystick setDetune={setDetune} />
-      </div>
-    </div>
-  );
-}
-
-export function RightThaliaPadOptions({
-  setInitialMidiId,
-  enabledOscillatorTypes,
-  setEnabledOscillatorTypes,
-  reverbEnabled,
-  toggleReverb,
-  setSelectedIR,
-  setDetune,
-}: ThaliaPadOptionsProps) {
-  const [reverbIdx, setReverbIdx] = useState(1);
-  const currentReverb = useMemo(() => REVERB_TYPES[reverbIdx], [reverbIdx]);
-
-  useEffect(() => {
-    if (
-      (reverbEnabled && !currentReverb) ||
-      (!reverbEnabled && currentReverb)
-    ) {
-      toggleReverb();
-    }
-  }, [currentReverb, reverbEnabled, toggleReverb]);
-
-  return (
-    <div className='p-4 w-fit bg-fuchsia-100 border-r-2 border-y-2 rounded-r-xl border-gray-400 flex flex-col gap-4 justify-between items-center'>
-      <div className='w-full grid grid-cols-2 gap-4 justify-center items-center'>
-        <div className='h-full flex flex-col justify-between items-center gap-2'>
-          <button
-            type='button'
-            className={cn(
-              'cursor-pointer w-9 aspect-square rounded-full bg-gray-300 text-gray-600',
-              reverbEnabled &&
-                ((currentReverb === 'basement' && 'text-sky-900 bg-sky-300') ||
-                  (currentReverb === 'church' && 'text-teal-900 bg-teal-300') ||
-                  (currentReverb === 'bathroom' &&
-                    'text-purple-900 bg-purple-300') ||
-                  (currentReverb === 'pipe' && 'text-pink-900 bg-pink-300')),
-            )}
-            onClick={() => {
-              setReverbIdx((prevIdx) => {
-                const newIdx = (prevIdx + 1) % REVERB_TYPES.length;
-                const nextReverb = REVERB_TYPES[newIdx];
-                if (nextReverb) {
-                  setSelectedIR(nextReverb);
-                }
-                return newIdx;
-              });
-            }}
-          >
-            <div className='w-5 mx-auto'>
-              <ReverbIcon />
-            </div>
-          </button>
-          <PadKeySelectionButtons
-            nextOctaveKeys={['t']}
-            nextNoteKeys={['g']}
-            nextAccidentalKeys={['b']}
-            setInitialMidiId={setInitialMidiId}
-          />
-        </div>
-        <WaveTypeSelectionOptions
+        {optionsPosition === 'right' && (<WaveTypeSelectionOptions
           enabledOscillatorTypes={enabledOscillatorTypes}
           setEnabledOscillatorTypes={setEnabledOscillatorTypes}
-        />
+        />)}
       </div>
-      <div className='w-full flex justify-end items-end'>
+      <div className='w-full flex justify-start items-end'>
         <ThaliaPadJoystick setDetune={setDetune} />
       </div>
     </div>
