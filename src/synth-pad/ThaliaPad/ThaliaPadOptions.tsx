@@ -44,7 +44,6 @@ interface ThaliaPadOptionsProps {
   setDetune: Dispatch<SetStateAction<number>>;
 }
 
-
 export function ThaliaPadOptions({
   optionsPosition = 'left',
   setInitialMidiId,
@@ -79,16 +78,20 @@ export function ThaliaPadOptions({
   }, [setReverbIdx, setSelectedIR]);
 
   return (
-    <div className={cn(
+    <div
+      className={cn(
         'p-4 w-fit border-y-2 border-gray-400 flex flex-col gap-4 justify-between items-center',
         optionsPosition === 'left' && 'bg-blue-100 border-l-2 rounded-l-xl',
         optionsPosition === 'right' && 'bg-fuchsia-100 border-r-2 rounded-r-xl',
-      )}>
+      )}
+    >
       <div className='w-full grid grid-cols-2 gap-4 justify-center items-center'>
-        {optionsPosition === 'left' && (<WaveTypeSelectionOptions
-          enabledOscillatorTypes={enabledOscillatorTypes}
-          setEnabledOscillatorTypes={setEnabledOscillatorTypes}
-        />)}
+        {optionsPosition === 'left' && (
+          <WaveTypeSelectionOptions
+            enabledOscillatorTypes={enabledOscillatorTypes}
+            setEnabledOscillatorTypes={setEnabledOscillatorTypes}
+          />
+        )}
         <div className='h-full flex flex-col justify-between items-center gap-2'>
           <button
             type='button'
@@ -115,12 +118,20 @@ export function ThaliaPadOptions({
             setInitialMidiId={setInitialMidiId}
           />
         </div>
-        {optionsPosition === 'right' && (<WaveTypeSelectionOptions
-          enabledOscillatorTypes={enabledOscillatorTypes}
-          setEnabledOscillatorTypes={setEnabledOscillatorTypes}
-        />)}
+        {optionsPosition === 'right' && (
+          <WaveTypeSelectionOptions
+            enabledOscillatorTypes={enabledOscillatorTypes}
+            setEnabledOscillatorTypes={setEnabledOscillatorTypes}
+          />
+        )}
       </div>
-      <div className='w-full flex justify-start items-end'>
+      <div
+        className={cn(
+          'w-full flex items-end',
+          optionsPosition === 'left' && 'justify-start',
+          optionsPosition === 'right' && 'justify-end',
+        )}
+      >
         <ThaliaPadJoystick setDetune={setDetune} />
       </div>
     </div>

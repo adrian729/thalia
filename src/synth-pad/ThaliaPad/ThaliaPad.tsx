@@ -11,9 +11,7 @@ import { useOscillator } from '../../audio-context/useOscillator';
 import { useReverb } from '../../audio-context/useReverb';
 import { notes } from '../../utils/notes';
 import { cn } from '../../utils/styles';
-import {
-  ThaliaPadOptions
-} from './ThaliaPadOptions';
+import { ThaliaPadOptions } from './ThaliaPadOptions';
 import {
   INITIAL_MIDI_ID,
   KEYS_MAPPING,
@@ -139,15 +137,15 @@ export default function ThaliaPad({
       </div>
       {optionsPosition === 'right' && (
         <ThaliaPadOptions
-        optionsPosition={optionsPosition}
-        setInitialMidiId={setInitialMidiId}
-        enabledOscillatorTypes={enabledOscillatorTypes}
-        setEnabledOscillatorTypes={setEnabledOscillatorTypes}
-        reverbEnabled={reverbEnabled}
-        toggleReverb={toggleReverb}
-        setSelectedIR={setSelectedIR}
-        setDetune={setDetune}
-      />
+          optionsPosition={optionsPosition}
+          setInitialMidiId={setInitialMidiId}
+          enabledOscillatorTypes={enabledOscillatorTypes}
+          setEnabledOscillatorTypes={setEnabledOscillatorTypes}
+          reverbEnabled={reverbEnabled}
+          toggleReverb={toggleReverb}
+          setSelectedIR={setSelectedIR}
+          setDetune={setDetune}
+        />
       )}
     </div>
   );
