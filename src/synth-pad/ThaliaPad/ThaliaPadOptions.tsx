@@ -111,10 +111,10 @@ export function ThaliaPadOptions({
             </div>
           </button>
           <PadKeySelectionButtons
-            initialOctaveIndex={2}
-            nextOctaveKeys={['y']}
-            nextNoteKeys={['h']}
-            nextAccidentalKeys={['n']}
+            initialOctaveIndex={optionsPosition === 'left' ? 2 : 1}
+            nextOctaveKeys={optionsPosition === 'left' ? ['y'] : ['t']}
+            nextNoteKeys={optionsPosition === 'left' ? ['h'] : ['g']}
+            nextAccidentalKeys={optionsPosition === 'left' ? ['n'] : ['b']}
             setInitialMidiId={setInitialMidiId}
           />
         </div>
