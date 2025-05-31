@@ -241,7 +241,6 @@ function PadKeySelectionButtons({
         type='button'
         className={cn(
           'cursor-pointer w-9 aspect-square rounded-full bg-gray-300 text-gray-900 font-bold text-xl',
-          accidentalIndex === 1 && 'pb-2',
           ACCIDENTAL_CLASSES[accidentalIndex],
         )}
         onClick={setNextAccidentalIndex}

@@ -40,7 +40,7 @@ export const NOTE_CLASSES = [
 export const ACCIDENTALS = [BEMOL, NATURAL, SHARP] as const;
 export const ACCIDENTAL_CLASSES = [
   'text-pink-900 bg-pink-300',
-  'text-blue-900 bg-blue-300 pb-2',
+  'text-blue-900 bg-blue-300',
   'text-emerald-900 bg-emerald-300',
 ] as const;
 
