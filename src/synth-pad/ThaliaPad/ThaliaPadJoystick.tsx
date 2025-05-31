@@ -13,11 +13,13 @@ import {
   scale,
   Vec2,
 } from '../../utils/math';
+import { KeyHandlers } from '../../utils/types';
+import useKeyboard from '../../utils/useKeyboard';
 
-const ArrowKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'] as const;
-type ArrowKey = (typeof ArrowKeys)[number];
-function isArrowKey(key: unknown): key is ArrowKey {
-  return ArrowKeys.includes(key as ArrowKey);
+const ARROW_KEYS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'] as const;
+type ArrowKey = (typeof ARROW_KEYS)[number];
+function _isArrowKey(key: unknown): key is ArrowKey {
+  return ARROW_KEYS.includes(key as ArrowKey);
 }
 
 type Box = {
@@ -177,18 +179,6 @@ export function ThaliaPadJoystick({
     setPitchCoords(pitchCoordsFromPressedArrowKeys(pressedArrowKeys));
   }, [pressedArrowKeys]);
 
-  const keyDownHandler = useCallback((event: KeyboardEvent) => {
-    if (isArrowKey(event.key)) {
-      setPressedArrowKeys((prev) => [...prev, event.key as ArrowKey]);
-    }
-  }, []);
-
-  const keyUpHandler = useCallback((event: KeyboardEvent) => {
-    if (isArrowKey(event.key)) {
-      setPressedArrowKeys((prev) => prev.filter((key) => key !== event.key));
-    }
-  }, []);
-
   const mouseMoveHandler = useCallback(
     (event: MouseEvent) => {
       if (isDragging) {
@@ -206,17 +196,36 @@ export function ThaliaPadJoystick({
   }, []);
 
   useEffect(() => {
-    document.addEventListener('keydown', keyDownHandler);
-    document.addEventListener('keyup', keyUpHandler);
     document.addEventListener('mousemove', mouseMoveHandler);
     document.addEventListener('mouseup', mouseUpHandler);
     return () => {
-      document.removeEventListener('keydown', keyDownHandler);
-      document.removeEventListener('keyup', keyUpHandler);
       document.removeEventListener('mousemove', mouseMoveHandler);
       document.removeEventListener('mouseup', mouseUpHandler);
     };
-  }, [keyDownHandler, keyUpHandler, mouseMoveHandler, mouseUpHandler]);
+  }, [mouseMoveHandler, mouseUpHandler]);
+
+  const keyMappings = useMemo(() => {
+    return ARROW_KEYS.reduce(
+      (acc, key) => {
+        acc[key.toLowerCase()] = {
+          onKeyDown: () => {
+            setPressedArrowKeys((prev) => {
+              return !prev.includes(key) ? [...prev, key] : prev;
+            });
+          },
+          onKeyUp: () => {
+            setPressedArrowKeys((prev) => prev.filter((k) => k !== key));
+          },
+        };
+        return acc;
+      },
+      {} as Record<string, KeyHandlers>,
+    );
+  }, [setPressedArrowKeys]);
+
+  useKeyboard({
+    keyMappings
+  })
 
   useEffect(() => {
     setDetune(getOctaveDetune(pitchCoords.y) + getFifthDetune(pitchCoords.x));

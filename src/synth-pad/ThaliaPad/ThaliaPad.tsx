@@ -11,6 +11,8 @@ import { useOscillator } from '../../audio-context/useOscillator';
 import { useReverb } from '../../audio-context/useReverb';
 import { notes } from '../../utils/notes';
 import { cn } from '../../utils/styles';
+import { KeyHandlers } from '../../utils/types';
+import useKeyboard from '../../utils/useKeyboard';
 import { ThaliaPadOptions } from './ThaliaPadOptions';
 import {
   INITIAL_MIDI_ID,
@@ -237,32 +239,17 @@ function ThaliaPadButton({
     }
   }, [isPlaying, stopSine, stopSquare, stopSawtooth, stopTriangle]);
 
-  const keyDownHandler = useCallback(
-    (event: KeyboardEvent) => {
-      if (keys.includes(event.key.toLowerCase())) {
-        playOscillators();
-      }
-    },
-    [keys, playOscillators],
-  );
+  const keyMappings = useMemo(() => {
+    return keys.reduce((acc, key) => {
+      acc[key] = {
+        onKeyDown: playOscillators,
+        onKeyUp: stopOscillators,
+      };
+      return acc;
+    }, {} as Record<string, KeyHandlers>);
+  }, [keys, playOscillators, stopOscillators]);
 
-  const keyUpHandler = useCallback(
-    (event: KeyboardEvent) => {
-      if (keys.includes(event.key.toLowerCase())) {
-        stopOscillators();
-      }
-    },
-    [keys, stopOscillators],
-  );
-
-  useEffect(() => {
-    document.addEventListener('keydown', keyDownHandler);
-    document.addEventListener('keyup', keyUpHandler);
-    return () => {
-      document.removeEventListener('keydown', keyDownHandler);
-      document.removeEventListener('keyup', keyUpHandler);
-    };
-  }, [keyDownHandler, keyUpHandler]);
+  useKeyboard({ keyMappings });
 
   return (
     <button

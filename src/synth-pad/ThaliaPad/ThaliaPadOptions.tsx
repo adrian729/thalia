@@ -21,6 +21,8 @@ import {
   TriplePlusIcon,
 } from '../../icons';
 import { cn } from '../../utils/styles';
+import { KeyHandlers } from '../../utils/types';
+import useKeyboard from '../../utils/useKeyboard';
 import { ThaliaPadJoystick } from './ThaliaPadJoystick';
 import {
   ACCIDENTAL_CLASSES,
@@ -142,9 +144,9 @@ function PadKeySelectionButtons({
   initialOctaveIndex = 1,
   initialNoteIndex = 0,
   initialAccidentalIndex = 1,
-  nextOctaveKeys,
-  nextNoteKeys,
-  nextAccidentalKeys,
+  nextOctaveKeys = [],
+  nextNoteKeys = [],
+  nextAccidentalKeys = [],
   setInitialMidiId,
 }: {
   initialOctaveIndex?: number;
@@ -160,7 +162,6 @@ function PadKeySelectionButtons({
   const [accidentalIndex, setAccidentalIndex] = useState(
     initialAccidentalIndex,
   );
-  const [keysPressed, setKeysPressed] = useState<string[]>([]);
 
   useEffect(() => {
     const initialMidiId = 36;
@@ -184,47 +185,46 @@ function PadKeySelectionButtons({
     [setAccidentalIndex],
   );
 
-  const keyDownHandler = useCallback(
-    (event: KeyboardEvent) => {
-      const key = event.key.toLowerCase();
-      if (keysPressed.includes(key)) {
-        return;
-      }
-      setKeysPressed((prev) => [...prev, key]);
-      if (nextOctaveKeys?.includes(key)) {
-        setNextOctaveIndex();
-      }
-      if (nextNoteKeys?.includes(key)) {
-        setNextNoteIndex();
-      }
-      if (nextAccidentalKeys?.includes(key)) {
-        setNextAccidentalIndex();
-      }
-    },
-    [
-      keysPressed,
-      nextAccidentalKeys,
-      nextNoteKeys,
-      nextOctaveKeys,
-      setNextAccidentalIndex,
-      setNextNoteIndex,
-      setNextOctaveIndex,
-    ],
-  );
+  const keyMappings = useMemo(() => {
+    const mappings: Record<string, KeyHandlers> = {};
 
-  const keyUpHandler = useCallback((event: KeyboardEvent) => {
-    const key = event.key.toLowerCase();
-    setKeysPressed((prev) => prev.filter((k) => k !== key));
-  }, []);
+    if (nextOctaveKeys) {
+      nextOctaveKeys.forEach((key) => {
+        mappings[key] = {
+          onKeyDown: setNextOctaveIndex,
+        };
+      });
+    }
 
-  useEffect(() => {
-    document.addEventListener('keydown', keyDownHandler);
-    document.addEventListener('keyup', keyUpHandler);
-    return () => {
-      document.removeEventListener('keydown', keyDownHandler);
-      document.removeEventListener('keyup', keyUpHandler);
-    };
-  }, [keyDownHandler, keyUpHandler]);
+    if (nextNoteKeys) {
+      nextNoteKeys.forEach((key) => {
+        mappings[key] = {
+          onKeyDown: setNextNoteIndex,
+        };
+      });
+    }
+
+    if (nextAccidentalKeys) {
+      nextAccidentalKeys.forEach((key) => {
+        mappings[key] = {
+          onKeyDown: setNextAccidentalIndex,
+        };
+      });
+    }
+
+    return mappings;
+  }, [
+    nextOctaveKeys,
+    setNextOctaveIndex,
+    nextNoteKeys,
+    setNextNoteIndex,
+    nextAccidentalKeys,
+    setNextAccidentalIndex,
+  ]);
+
+  useKeyboard({
+    keyMappings,
+  });
 
   return (
     <>
