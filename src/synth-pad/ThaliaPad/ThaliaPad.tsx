@@ -240,13 +240,16 @@ function ThaliaPadButton({
   }, [isPlaying, stopSine, stopSquare, stopSawtooth, stopTriangle]);
 
   const keyMappings = useMemo(() => {
-    return keys.reduce((acc, key) => {
-      acc[key] = {
-        onKeyDown: playOscillators,
-        onKeyUp: stopOscillators,
-      };
-      return acc;
-    }, {} as Record<string, KeyHandlers>);
+    return keys.reduce(
+      (acc, key) => {
+        acc[key] = {
+          onKeyDown: playOscillators,
+          onKeyUp: stopOscillators,
+        };
+        return acc;
+      },
+      {} as Record<string, KeyHandlers>,
+    );
   }, [keys, playOscillators, stopOscillators]);
 
   useKeyboard({ keyMappings });

@@ -224,8 +224,8 @@ export function ThaliaPadJoystick({
   }, [setPressedArrowKeys]);
 
   useKeyboard({
-    keyMappings
-  })
+    keyMappings,
+  });
 
   useEffect(() => {
     setDetune(getOctaveDetune(pitchCoords.y) + getFifthDetune(pitchCoords.x));
