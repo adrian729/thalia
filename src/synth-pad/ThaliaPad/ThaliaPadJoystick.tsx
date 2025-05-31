@@ -18,9 +18,6 @@ import useKeyboard from '../../utils/useKeyboard';
 
 const ARROW_KEYS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'] as const;
 type ArrowKey = (typeof ARROW_KEYS)[number];
-function _isArrowKey(key: unknown): key is ArrowKey {
-  return ARROW_KEYS.includes(key as ArrowKey);
-}
 
 type Box = {
   width: number;

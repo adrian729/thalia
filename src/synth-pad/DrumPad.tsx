@@ -1,5 +1,5 @@
 import { ClassValue } from 'clsx';
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { MainAudioContext } from '../audio-context/MainAudioContext';
 import { useReverb } from '../audio-context/useReverb';
 import {
@@ -14,6 +14,8 @@ import {
   playTom3,
 } from '../utils/audio';
 import { cn } from '../utils/styles';
+import { KeyHandlers } from '../utils/types';
+import useKeyboard from '../utils/useKeyboard';
 
 type DrumPadConfigItem = {
   playInstrument: ({
@@ -127,36 +129,29 @@ function DrumPadButton({
   const [isPlaying, setIsPlaying] = useState(false);
 
   const { playInstrument, keys, extraClasses, playingClasses } = configItem;
-  const keyDownHandler = useCallback(
-    (event: KeyboardEvent) => {
-      if (audioContext && destination && keys.includes(event.key)) {
-        setIsPlaying(true);
-        playInstrument({
-          audioContext,
-          destination: destination,
-        });
-      }
-    },
-    [audioContext, destination, keys, playInstrument],
-  );
 
-  const keyUpHandler = useCallback(
-    (event: KeyboardEvent) => {
-      if (keys.includes(event.key)) {
-        setIsPlaying(false);
-      }
-    },
-    [keys],
-  );
+  const keyMappings = useMemo(() => {
+    return keys.reduce(
+      (acc, key) => {
+        acc[key.toLowerCase()] = {
+          onKeyDown: () => {
+            if (audioContext && destination) {
+              setIsPlaying(true);
+              playInstrument({
+                audioContext,
+                destination: destination,
+              });
+            }
+          },
+          onKeyUp: () => setIsPlaying(false),
+        };
+        return acc;
+      },
+      {} as Record<string, KeyHandlers>,
+    );
+  }, [keys, playInstrument, audioContext, destination]);
 
-  useEffect(() => {
-    document.addEventListener('keydown', keyDownHandler);
-    document.addEventListener('keyup', keyUpHandler);
-    return () => {
-      document.removeEventListener('keydown', keyDownHandler);
-      document.removeEventListener('keyup', keyUpHandler);
-    };
-  }, [keyDownHandler, keyUpHandler]);
+  useKeyboard({ keyMappings });
 
   return (
     <button

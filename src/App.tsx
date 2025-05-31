@@ -1,5 +1,6 @@
 import { useContext, useState } from 'react';
 import { MainAudioContext } from './audio-context/MainAudioContext';
+import DrumPad from './synth-pad/DrumPad';
 import ThaliaPad from './synth-pad/ThaliaPad/ThaliaPad';
 
 function App() {
@@ -27,8 +28,6 @@ function App() {
     <div className='w-full h-screen bg-gray-100'>
       <div className='w-full h-full flex justify-center items-center'>
         <div className='flex flex-col justify-center items-center gap-4'>
-          {/* <DrumPad /> */}
-          {/* <div className="border-b-2 border-gray-500 w-full"></div> */}
           <div className='flex gap-2'>
             <ThaliaPad
               keysMappingKey='left'
@@ -41,6 +40,8 @@ function App() {
               helperEnabled={helperEnabled}
             />
           </div>
+          <div className="border-b-2 border-gray-500 w-lg"></div>
+          <DrumPad />
         </div>
       </div>
     </div>

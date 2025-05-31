@@ -172,10 +172,9 @@ function PadKeySelectionButtons({
     );
   }, [octaveIndex, noteIndex, accidentalIndex, setInitialMidiId]);
 
-  const setNextOctaveIndex = useCallback(
-    () => setOctaveIndex((prev) => (prev + 1) % 5),
-    [setOctaveIndex],
-  );
+  const setNextOctaveIndex = useCallback(() => {
+    setOctaveIndex((prev) => (prev + 1) % 5);
+  }, [setOctaveIndex]);
   const setNextNoteIndex = useCallback(
     () => setNoteIndex((prev) => (prev + 1) % NOTE_NAMES.length),
     [setNoteIndex],
@@ -186,33 +185,27 @@ function PadKeySelectionButtons({
   );
 
   const keyMappings = useMemo(() => {
-    const mappings: Record<string, KeyHandlers> = {};
+    const keysToMapping = (
+      keys: string[],
+      onKeyDown?: () => void,
+      onKeyUp?: () => void,
+    ) =>
+      keys.reduce(
+        (acc, key) => ({
+          ...acc,
+          [key]: {
+            onKeyDown,
+            onKeyUp,
+          },
+        }),
+        {} as Record<string, KeyHandlers>,
+      );
 
-    if (nextOctaveKeys) {
-      nextOctaveKeys.forEach((key) => {
-        mappings[key] = {
-          onKeyDown: setNextOctaveIndex,
-        };
-      });
-    }
-
-    if (nextNoteKeys) {
-      nextNoteKeys.forEach((key) => {
-        mappings[key] = {
-          onKeyDown: setNextNoteIndex,
-        };
-      });
-    }
-
-    if (nextAccidentalKeys) {
-      nextAccidentalKeys.forEach((key) => {
-        mappings[key] = {
-          onKeyDown: setNextAccidentalIndex,
-        };
-      });
-    }
-
-    return mappings;
+    return {
+      ...keysToMapping(nextOctaveKeys, setNextOctaveIndex),
+      ...keysToMapping(nextNoteKeys, setNextNoteIndex),
+      ...keysToMapping(nextAccidentalKeys, setNextAccidentalIndex),
+    };
   }, [
     nextOctaveKeys,
     setNextOctaveIndex,
