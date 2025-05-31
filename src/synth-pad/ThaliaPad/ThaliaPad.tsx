@@ -65,28 +65,45 @@ export default function ThaliaPad({
   const [detune, setDetune] = useState(0);
 
   return (
-      <div className='h-fit flex'>
-        {optionsPosition === 'left' && (
-          <LeftThaliaPadOptions
-            setInitialMidiId={setInitialMidiId}
-            enabledOscillatorTypes={enabledOscillatorTypes}
-            setEnabledOscillatorTypes={setEnabledOscillatorTypes}
-            reverbEnabled={reverbEnabled}
-            toggleReverb={toggleReverb}
-            setSelectedIR={setSelectedIR}
-            setDetune={setDetune}
-          />
+    <div className='h-fit flex'>
+      {optionsPosition === 'left' && (
+        <LeftThaliaPadOptions
+          setInitialMidiId={setInitialMidiId}
+          enabledOscillatorTypes={enabledOscillatorTypes}
+          setEnabledOscillatorTypes={setEnabledOscillatorTypes}
+          reverbEnabled={reverbEnabled}
+          toggleReverb={toggleReverb}
+          setSelectedIR={setSelectedIR}
+          setDetune={setDetune}
+        />
+      )}
+      <div
+        className={cn(
+          'bg-gray-50 border-2 border-gray-400',
+          optionsPosition === 'left' && 'rounded-br-xl rounded-tr-[8rem]',
+          optionsPosition === 'right' && 'rounded-tl-xl rounded-bl-[8rem]',
         )}
-        <div
-          className={cn(
-            'bg-gray-50 border-2 border-gray-400',
-            optionsPosition === 'left' && 'rounded-br-xl rounded-tr-[8rem]',
-            optionsPosition === 'right' && 'rounded-tl-xl rounded-bl-[8rem]',
-          )}
-        >
-          <div className='w-fit pl-8 pr-4 pt-6 flex flex-nowrap gap-2'>
-            {/* 2-/3-/6-/7- */}
-            {[1, 3, 8, 10].map((midiId) => (
+      >
+        <div className='w-fit pl-8 pr-4 pt-6 flex flex-nowrap gap-2'>
+          {/* 2-/3-/6-/7- */}
+          {[1, 3, 8, 10].map((midiId) => (
+            <ThaliaPadButton
+              key={midiId}
+              midiId={midiId}
+              initialMidiId={initialMidiId}
+              configItem={THALIA_CONFIG_ITEMS[midiId % 12]}
+              keys={KEYS_MAPPING[keysMappingKey][midiId % 12]}
+              enabledOscillatorTypes={enabledOscillatorTypes}
+              detune={detune}
+              destination={destinationRef.current}
+              helperEnabled={helperEnabled}
+            />
+          ))}
+        </div>
+        <div className='pl-11'>
+          <div className='w-fit pl-8 pr-4 flex flex-nowrap gap-2'>
+            {/* 1/3/5/7 */}
+            {[0, 4, 7, 11].map((midiId) => (
               <ThaliaPadButton
                 key={midiId}
                 midiId={midiId}
@@ -95,63 +112,43 @@ export default function ThaliaPad({
                 keys={KEYS_MAPPING[keysMappingKey][midiId % 12]}
                 enabledOscillatorTypes={enabledOscillatorTypes}
                 detune={detune}
-                audioContext={audioContext}
                 destination={destinationRef.current}
                 helperEnabled={helperEnabled}
               />
             ))}
           </div>
-          <div className='pl-11'>
-            <div className='w-fit pl-8 pr-4 flex flex-nowrap gap-2'>
-              {/* 1/3/5/7 */}
-              {[0, 4, 7, 11].map((midiId) => (
-                <ThaliaPadButton
-                  key={midiId}
-                  midiId={midiId}
-                  initialMidiId={initialMidiId}
-                  configItem={THALIA_CONFIG_ITEMS[midiId % 12]}
-                  keys={KEYS_MAPPING[keysMappingKey][midiId % 12]}
-                  enabledOscillatorTypes={enabledOscillatorTypes}
-                  detune={detune}
-                  audioContext={audioContext}
-                  destination={destinationRef.current}
-                  helperEnabled={helperEnabled}
-                />
-              ))}
-            </div>
-          </div>
-          <div className='pl-22'>
-            <div className='w-fit pl-8 pr-4 pb-6 flex flex-nowrap gap-2'>
-              {/* 2/4/5-/6 */}
-              {[2, 5, 6, 9].map((midiId) => (
-                <ThaliaPadButton
-                  key={midiId}
-                  midiId={midiId}
-                  initialMidiId={initialMidiId}
-                  configItem={THALIA_CONFIG_ITEMS[midiId % 12]}
-                  keys={KEYS_MAPPING[keysMappingKey][midiId % 12]}
-                  enabledOscillatorTypes={enabledOscillatorTypes}
-                  detune={detune}
-                  audioContext={audioContext}
-                  destination={destinationRef.current}
-                  helperEnabled={helperEnabled}
-                />
-              ))}
-            </div>
+        </div>
+        <div className='pl-22'>
+          <div className='w-fit pl-8 pr-4 pb-6 flex flex-nowrap gap-2'>
+            {/* 2/4/5-/6 */}
+            {[2, 5, 6, 9].map((midiId) => (
+              <ThaliaPadButton
+                key={midiId}
+                midiId={midiId}
+                initialMidiId={initialMidiId}
+                configItem={THALIA_CONFIG_ITEMS[midiId % 12]}
+                keys={KEYS_MAPPING[keysMappingKey][midiId % 12]}
+                enabledOscillatorTypes={enabledOscillatorTypes}
+                detune={detune}
+                destination={destinationRef.current}
+                helperEnabled={helperEnabled}
+              />
+            ))}
           </div>
         </div>
-        {optionsPosition === 'right' && (
-          <RightThaliaPadOptions
-            setInitialMidiId={setInitialMidiId}
-            enabledOscillatorTypes={enabledOscillatorTypes}
-            setEnabledOscillatorTypes={setEnabledOscillatorTypes}
-            reverbEnabled={reverbEnabled}
-            toggleReverb={toggleReverb}
-            setSelectedIR={setSelectedIR}
-            setDetune={setDetune}
-          />
-        )}
       </div>
+      {optionsPosition === 'right' && (
+        <RightThaliaPadOptions
+          setInitialMidiId={setInitialMidiId}
+          enabledOscillatorTypes={enabledOscillatorTypes}
+          setEnabledOscillatorTypes={setEnabledOscillatorTypes}
+          reverbEnabled={reverbEnabled}
+          toggleReverb={toggleReverb}
+          setSelectedIR={setSelectedIR}
+          setDetune={setDetune}
+        />
+      )}
+    </div>
   );
 }
 
@@ -162,7 +159,6 @@ function ThaliaPadButton({
   keys,
   enabledOscillatorTypes,
   detune,
-  audioContext,
   destination,
   helperEnabled,
 }: {
@@ -172,7 +168,6 @@ function ThaliaPadButton({
   keys: string[];
   enabledOscillatorTypes: OscillatorType[];
   detune: number;
-  audioContext: AudioContext;
   destination: AudioNode;
   helperEnabled: boolean;
 }) {
@@ -182,145 +177,83 @@ function ThaliaPadButton({
   );
 
   const { extraClasses, playingClasses } = configItem;
+  const numOscillators = enabledOscillatorTypes.length || 1;
+
   const [isPlaying, setIsPlaying] = useState(false);
-  const { start: startSine } = useOscillator({
+
+  const { start: startSine, stop: stopSine } = useOscillator({
+    gain: enabledOscillatorTypes.includes('sine')
+      ? (1.5 + (numOscillators - 1) * 0.1) / numOscillators
+      : 0,
     frequency,
+    detune,
     destination,
     type: 'sine',
   });
-  const { start: startSquare } = useOscillator({
+  const { start: startSquare, stop: stopSquare } = useOscillator({
+    gain: enabledOscillatorTypes.includes('square')
+      ? (0.2 + (numOscillators - 1) * 0.08) / numOscillators
+      : 0,
     frequency,
+    detune,
     destination,
     type: 'square',
   });
-  const { start: startSawtooth } = useOscillator({
+  const { start: startSawtooth, stop: stopSawtooth } = useOscillator({
+    gain: enabledOscillatorTypes.includes('sawtooth')
+      ? (0.3 + (numOscillators - 1) * 0.1) / numOscillators
+      : 0,
     frequency,
+    detune,
     destination,
     type: 'sawtooth',
   });
-  const { start: startTriangle } = useOscillator({
+  const { start: startTriangle, stop: stopTriangle } = useOscillator({
+    gain: enabledOscillatorTypes.includes('triangle')
+      ? (1 + (numOscillators - 1) * 0.1) / numOscillators
+      : 0,
     frequency,
+    detune,
     destination,
     type: 'triangle',
   });
-  const oscillatorSineRef = useRef<OscillatorNode | null>(null);
-  const stopSineRef = useRef<() => void>(null);
-  const oscillatorSquareRef = useRef<OscillatorNode | null>(null);
-  const stopSquareRef = useRef<() => void>(null);
-  const oscillatorSawtoothRef = useRef<OscillatorNode | null>(null);
-  const stopSawtoothRef = useRef<() => void>(null);
-  const oscillatorTriangleRef = useRef<OscillatorNode | null>(null);
-  const stopTriangleRef = useRef<() => void>(null);
 
-  const playOscillator = useCallback(() => {
-    const numOscillators = enabledOscillatorTypes.length || 1;
-    if (audioContext && destination && !isPlaying) {
-      if (!stopSineRef.current && enabledOscillatorTypes.includes('sine')) {
-        const { stop, oscillator } = startSine({
-          gain: 2 / numOscillators,
-          detune,
-        });
-        oscillatorSineRef.current = oscillator;
-        stopSineRef.current = stop;
-      }
-      if (!stopSquareRef.current && enabledOscillatorTypes.includes('square')) {
-        const { stop, oscillator } = startSquare({
-          gain: 0.3 / numOscillators,
-          detune,
-        });
-        oscillatorSquareRef.current = oscillator;
-        stopSquareRef.current = stop;
-      }
-      if (
-        !stopSawtoothRef.current &&
-        enabledOscillatorTypes.includes('sawtooth')
-      ) {
-        const { stop, oscillator } = startSawtooth({
-          gain: 0.3 / numOscillators,
-          detune,
-        });
-        oscillatorSawtoothRef.current = oscillator;
-        stopSawtoothRef.current = stop;
-      }
-      if (
-        !stopTriangleRef.current &&
-        enabledOscillatorTypes.includes('triangle')
-      ) {
-        const { stop, oscillator } = startTriangle({
-          gain: 2 / numOscillators,
-          detune,
-        });
-        oscillatorTriangleRef.current = oscillator;
-        stopTriangleRef.current = stop;
-      }
+  const playOscillators = useCallback(() => {
+    if (!isPlaying) {
+      startSine();
+      startSquare();
+      startSawtooth();
+      startTriangle();
       setIsPlaying(true);
     }
-  }, [
-    audioContext,
-    destination,
-    detune,
-    isPlaying,
-    startSawtooth,
-    startSine,
-    startSquare,
-    startTriangle,
-  ]);
+  }, [isPlaying, startSine, startSquare, startSawtooth, startTriangle]);
 
-  const stopOscillator = useCallback(() => {
-    if (!isPlaying) {
-      return;
+  const stopOscillators = useCallback(() => {
+    if (isPlaying) {
+      stopSine();
+      stopSquare();
+      stopSawtooth();
+      stopTriangle();
+      setIsPlaying(false);
     }
-    if (stopSineRef.current) {
-      stopSineRef.current();
-      stopSineRef.current = null;
-    }
-    if (stopSquareRef.current) {
-      stopSquareRef.current();
-      stopSquareRef.current = null;
-    }
-    if (stopSawtoothRef.current) {
-      stopSawtoothRef.current();
-      stopSawtoothRef.current = null;
-    }
-    if (stopTriangleRef.current) {
-      stopTriangleRef.current();
-      stopTriangleRef.current = null;
-    }
-    setIsPlaying(false);
-  }, [isPlaying]);
-
-  useEffect(() => {
-    const currentTime = audioContext.currentTime;
-    if (oscillatorSineRef.current) {
-      oscillatorSineRef.current.detune.setValueAtTime(detune, currentTime);
-    }
-    if (oscillatorSquareRef.current) {
-      oscillatorSquareRef.current.detune.setValueAtTime(detune, currentTime);
-    }
-    if (oscillatorSawtoothRef.current) {
-      oscillatorSawtoothRef.current.detune.setValueAtTime(detune, currentTime);
-    }
-    if (oscillatorTriangleRef.current) {
-      oscillatorTriangleRef.current.detune.setValueAtTime(detune, currentTime);
-    }
-  }, [audioContext.currentTime, detune]);
+  }, [isPlaying, stopSine, stopSquare, stopSawtooth, stopTriangle]);
 
   const keyDownHandler = useCallback(
     (event: KeyboardEvent) => {
       if (keys.includes(event.key.toLowerCase())) {
-        playOscillator();
+        playOscillators();
       }
     },
-    [keys, playOscillator],
+    [keys, playOscillators],
   );
 
   const keyUpHandler = useCallback(
     (event: KeyboardEvent) => {
       if (keys.includes(event.key.toLowerCase())) {
-        stopOscillator();
+        stopOscillators();
       }
     },
-    [keys, stopOscillator],
+    [keys, stopOscillators],
   );
 
   useEffect(() => {
@@ -340,9 +273,9 @@ function ThaliaPadButton({
         extraClasses,
         isPlaying && playingClasses,
       ])}
-      onMouseDown={playOscillator}
-      onMouseUp={stopOscillator}
-      onMouseLeave={stopOscillator}
+      onMouseDown={playOscillators}
+      onMouseUp={stopOscillators}
+      onMouseLeave={stopOscillators}
     >
       {helperEnabled && `${keys[0]}`}
     </button>
