@@ -79,6 +79,23 @@ export function ThaliaPadOptions({
     });
   }, [setReverbIdx, setSelectedIR]);
 
+  const initialOctaveIndex = useMemo(
+    () => (optionsPosition === 'left' ? 2 : 1),
+    [optionsPosition],
+  );
+  const nextOctaveKeys = useMemo(
+    () => (optionsPosition === 'left' ? ['y'] : ['t']),
+    [optionsPosition],
+  );
+  const nextNoteKeys = useMemo(
+    () => (optionsPosition === 'left' ? ['h'] : ['g']),
+    [optionsPosition],
+  );
+  const nextAccidentalKeys = useMemo(
+    () => (optionsPosition === 'left' ? ['n'] : ['b']),
+    [optionsPosition],
+  );
+
   return (
     <div
       className={cn(
@@ -113,10 +130,10 @@ export function ThaliaPadOptions({
             </div>
           </button>
           <PadKeySelectionButtons
-            initialOctaveIndex={optionsPosition === 'left' ? 2 : 1}
-            nextOctaveKeys={optionsPosition === 'left' ? ['y'] : ['t']}
-            nextNoteKeys={optionsPosition === 'left' ? ['h'] : ['g']}
-            nextAccidentalKeys={optionsPosition === 'left' ? ['n'] : ['b']}
+            initialOctaveIndex={initialOctaveIndex}
+            nextOctaveKeys={nextOctaveKeys}
+            nextNoteKeys={nextNoteKeys}
+            nextAccidentalKeys={nextAccidentalKeys}
             setInitialMidiId={setInitialMidiId}
           />
         </div>

@@ -40,7 +40,7 @@ function App() {
               helperEnabled={helperEnabled}
             />
           </div>
-          <div className="border-b-2 border-gray-500 w-lg"></div>
+          <div className='border-b-2 border-gray-500 w-lg'></div>
           <DrumPad />
         </div>
       </div>

@@ -8,9 +8,9 @@ const root = document.getElementById('root');
 if (root !== null) {
   createRoot(root).render(
     // <StrictMode>
-      <MainAudioContextProvider>
-        <App />
-      </MainAudioContextProvider>
+    <MainAudioContextProvider>
+      <App />
+    </MainAudioContextProvider>,
     // </StrictMode>,
   );
 }
