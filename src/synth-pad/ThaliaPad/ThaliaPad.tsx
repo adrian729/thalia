@@ -17,6 +17,7 @@ import { ThaliaPadOptions } from './ThaliaPadOptions';
 import {
   INITIAL_MIDI_ID,
   KEYS_MAPPING,
+  OSCILLATOR_TYPES,
   THALIA_CONFIG_ITEMS,
 } from './constants';
 import { Position, ThaliaPadConfigItem } from './types';
@@ -180,51 +181,96 @@ function ThaliaPadButton({
   const { extraClasses, playingClasses } = configItem;
   const numOscillators = enabledOscillatorTypes.length || 1;
 
-  const [isPlaying, setIsPlaying] = useState(false);
-
-  const { start: startSine, stop: stopSine } = useOscillator({
-    gain: enabledOscillatorTypes.includes('sine')
-      ? (1.5 + (numOscillators - 1) * 0.1) / numOscillators
-      : 0,
+  const {
+    start: startSine,
+    stop: stopSine,
+    isPlaying: isPlayingSine,
+  } = useOscillator({
+    gain: 0.5 / numOscillators,
     frequency,
     detune,
     destination,
     type: 'sine',
   });
-  const { start: startSquare, stop: stopSquare } = useOscillator({
-    gain: enabledOscillatorTypes.includes('square')
-      ? (0.2 + (numOscillators - 1) * 0.08) / numOscillators
-      : 0,
+  const {
+    start: startSquare,
+    stop: stopSquare,
+    isPlaying: isPlayingSquare,
+  } = useOscillator({
+    gain: 0.2 / numOscillators,
     frequency,
     detune,
     destination,
     type: 'square',
   });
-  const { start: startSawtooth, stop: stopSawtooth } = useOscillator({
-    gain: enabledOscillatorTypes.includes('sawtooth')
-      ? (0.3 + (numOscillators - 1) * 0.1) / numOscillators
-      : 0,
+  const {
+    start: startSawtooth,
+    stop: stopSawtooth,
+    isPlaying: isPlayingSawtooth,
+  } = useOscillator({
+    gain: 0.3 / numOscillators,
     frequency,
     detune,
     destination,
     type: 'sawtooth',
   });
-  const { start: startTriangle, stop: stopTriangle } = useOscillator({
-    gain: enabledOscillatorTypes.includes('triangle')
-      ? (1 + (numOscillators - 1) * 0.1) / numOscillators
-      : 0,
+  const {
+    start: startTriangle,
+    stop: stopTriangle,
+    isPlaying: isPlayingTriangle,
+  } = useOscillator({
+    gain: 1 / numOscillators,
     frequency,
     detune,
     destination,
     type: 'triangle',
   });
 
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const startMethods = useMemo<Record<OscillatorType, () => void>>(
+    () => ({
+      sine: startSine,
+      square: startSquare,
+      sawtooth: startSawtooth,
+      triangle: startTriangle,
+      custom: () => {
+        console.warn('Custom oscillator type not implemented');
+      },
+    }),
+    [startSine, startSquare, startSawtooth, startTriangle],
+  );
+
+  const stopMethods = useMemo<Record<OscillatorType, () => void>>(
+    () => ({
+      sine: stopSine,
+      square: stopSquare,
+      sawtooth: stopSawtooth,
+      triangle: stopTriangle,
+      custom: () => {
+        console.warn('Custom oscillator type not implemented');
+      },
+    }),
+    [stopSine, stopSquare, stopSawtooth, stopTriangle],
+  );
+
+  const playingOscillators = useMemo<Record<OscillatorType, boolean>>(
+    () => ({
+      sine: isPlayingSine,
+      square: isPlayingSquare,
+      sawtooth: isPlayingSawtooth,
+      triangle: isPlayingTriangle,
+      custom: false,
+    }),
+    [isPlayingSine, isPlayingSquare, isPlayingSawtooth, isPlayingTriangle],
+  );
+
   const playOscillators = useCallback(() => {
     if (!isPlaying) {
-      startSine();
-      startSquare();
-      startSawtooth();
-      startTriangle();
+      enabledOscillatorTypes.forEach((type) => {
+        startMethods[type]?.();
+      });
+
       setIsPlaying(true);
     }
   }, [isPlaying, startSine, startSquare, startSawtooth, startTriangle]);
@@ -251,6 +297,24 @@ function ThaliaPadButton({
       {} as Record<string, KeyHandlers>,
     );
   }, [keys, playOscillators, stopOscillators]);
+
+  useEffect(() => {
+    if (isPlaying) {
+      OSCILLATOR_TYPES.forEach((type) => {
+        if (
+          enabledOscillatorTypes.includes(type) &&
+          !playingOscillators[type]
+        ) {
+          startMethods[type]?.();
+        } else if (
+          !enabledOscillatorTypes.includes(type) &&
+          playingOscillators[type]
+        ) {
+          stopMethods[type]?.();
+        }
+      });
+    }
+  }, [isPlaying, enabledOscillatorTypes, startMethods, playingOscillators]);
 
   useKeyboard({ keyMappings });
 

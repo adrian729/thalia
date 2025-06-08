@@ -2,7 +2,7 @@ import { useCallback, useContext, useEffect, useRef } from 'react';
 import { clamp } from '../utils/math';
 import { MainAudioContext } from './MainAudioContext';
 
-const EPSILON = 0.03;
+const EPSILON = 0.1;
 
 type UseOscillatorProps = {
   gain: number;
@@ -16,6 +16,7 @@ type UseOscillatorType = {
   gainNode: GainNode | null;
   start: () => void;
   stop: () => void;
+  isPlaying: boolean;
 };
 export function useOscillator({
   gain: gainValue,
@@ -52,15 +53,14 @@ export function useOscillator({
     oscillatorRef.current = null;
     gainNodeRef.current = null;
 
-    oscillator.stop(currentTime + 2 * EPSILON);
     setGainValueAtTime(gainNode, 0, currentTime);
 
     setTimeout(
       () => {
-        oscillator.disconnect();
+        oscillator.stop(currentTime + 10 * EPSILON);
         gainNode.disconnect();
       },
-      2 * EPSILON * 1000,
+      10 * EPSILON * 1000,
     );
   }, [gainNodeRef, oscillatorRef, audioContext]);
 
@@ -107,6 +107,7 @@ export function useOscillator({
     gainNode: gainNodeRef.current,
     start,
     stop,
+    isPlaying: !!oscillatorRef.current && !!gainNodeRef.current,
   };
 }
 
@@ -115,10 +116,10 @@ function setGainValueAtTime(
   value: number,
   currentTime: number,
 ) {
-  gainNode.gain.cancelAndHoldAtTime(currentTime);
+  gainNode.gain.cancelAndHoldAtTime(currentTime + EPSILON);
   gainNode.gain.exponentialRampToValueAtTime(
     Math.max(0.001, value),
-    currentTime + EPSILON,
+    currentTime + 2 * EPSILON,
   );
-  gainNode.gain.setValueAtTime(value, currentTime + EPSILON + 0.01);
+  gainNode.gain.setValueAtTime(value, currentTime + 3 * EPSILON);
 }

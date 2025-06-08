@@ -7,7 +7,7 @@ export const OSCILLATOR_TYPES: OscillatorType[] = [
   'square',
   'sawtooth',
   'triangle',
-];
+] as const;
 
 export const REVERB_TYPES: (IRType | null)[] = [
   null,
