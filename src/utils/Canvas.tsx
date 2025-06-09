@@ -1,4 +1,4 @@
-import { CanvasHTMLAttributes, useEffect, useRef } from 'react';
+import { CanvasHTMLAttributes, RefObject, useEffect, useRef } from 'react';
 
 function defaultDraw(ctx: CanvasRenderingContext2D, frameCount: number) {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -10,11 +10,19 @@ function defaultDraw(ctx: CanvasRenderingContext2D, frameCount: number) {
 
 export default function Canvas({
   draw = defaultDraw,
+  fpsRef,
   ...rest
 }: CanvasHTMLAttributes<HTMLCanvasElement> & {
-  draw: (canvasCtx: CanvasRenderingContext2D, frameCount: number) => void;
+  draw: (
+    canvasCtx: CanvasRenderingContext2D,
+    timestamp: DOMHighResTimeStamp,
+    renderTimestamp: DOMHighResTimeStamp,
+    frameCount: number,
+  ) => void;
+  fpsRef?: RefObject<number>;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const renderTimestampRef = useRef<DOMHighResTimeStamp>(performance.now());
 
   useEffect(() => {
     const canvasCtx = canvasRef.current?.getContext('2d');
@@ -24,13 +32,21 @@ export default function Canvas({
     }
 
     let frameCount = 0;
-    const render = () => {
-      frameCount++;
-      draw(canvasCtx, frameCount);
-      return window.requestAnimationFrame(render);
+    const render = (timestamp: DOMHighResTimeStamp) => {
+      const animationFrameID = window.requestAnimationFrame(render);
+
+      const deltaTime = timestamp - renderTimestampRef.current;
+      const fpsInterval = 1000 / (fpsRef?.current ?? 60);
+      if (deltaTime >= fpsInterval) {
+        renderTimestampRef.current = timestamp - (deltaTime % fpsInterval);
+        frameCount++;
+        draw(canvasCtx, timestamp, deltaTime, frameCount);
+      }
+
+      return animationFrameID;
     };
 
-    const animationFrameId = render();
+    const animationFrameId = render(performance.now());
 
     return () => {
       window.cancelAnimationFrame(animationFrameId);
