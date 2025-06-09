@@ -1,4 +1,5 @@
 import { useContext, useState } from 'react';
+import Analyser from './analyser';
 import { MainAudioContext } from './audio-context/MainAudioContext';
 import DrumPad from './synth-pad/DrumPad';
 import ThaliaPad from './synth-pad/ThaliaPad/ThaliaPad';
@@ -24,10 +25,12 @@ function App() {
     );
   }
 
+  // TODO: pass audioContext/state to components and remove the Context
   return (
     <div className='w-full h-screen bg-gray-100'>
       <div className='w-full h-full flex justify-center items-center'>
         <div className='flex flex-col justify-center items-center gap-4'>
+          <Analyser nodeToAnalyze={mainNode} audioContext={audioContext} />
           <div className='flex gap-2'>
             <ThaliaPad
               keysMappingKey='left'
