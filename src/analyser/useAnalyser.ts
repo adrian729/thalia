@@ -1,4 +1,7 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
+import { useLazyRef } from '../utils/useLazyRef';
+
+const FFT_SIZE = 2048;
 
 export default function useAnalyser({
   nodeToAnalyze,
@@ -9,32 +12,34 @@ export default function useAnalyser({
   audioContext: AudioContext;
   precission?: 'float' | 'uint';
 }) {
-  const analyser = useRef<AnalyserNode>(
-    new AnalyserNode(audioContext, {
-      fftSize: 2048,
-      minDecibels: -90,
-      maxDecibels: -10,
-      smoothingTimeConstant: 0.85,
-    }),
+  const analyserRef = useLazyRef(
+    () =>
+      new AnalyserNode(audioContext, {
+        fftSize: FFT_SIZE,
+        minDecibels: -90,
+        maxDecibels: -10,
+        smoothingTimeConstant: 0.85,
+      }),
   );
 
   const dataArray = useMemo(
     () =>
       precission === 'uint'
-        ? new Uint8Array(analyser.current.fftSize)
-        : new Float32Array(analyser.current.fftSize),
-    [analyser.current.fftSize],
+        ? new Uint8Array(FFT_SIZE)
+        : new Float32Array(FFT_SIZE),
+    [precission],
   );
 
   useEffect(() => {
-    nodeToAnalyze.connect(analyser.current);
+    const analyser = analyserRef.current;
+    nodeToAnalyze.connect(analyser);
     return () => {
-      nodeToAnalyze.disconnect(analyser.current);
+      nodeToAnalyze.disconnect(analyser);
     };
-  }, [nodeToAnalyze]);
+  }, [nodeToAnalyze, analyserRef]);
 
   return {
-    analyser: analyser.current,
+    analyser: analyserRef.current,
     dataArray,
   };
 }

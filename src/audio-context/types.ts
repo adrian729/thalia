@@ -1,4 +1,4 @@
-export type AudioSetup = {
+export interface AudioSetup {
   audioContext: AudioContext;
   mainNode: AudioNode;
-};
+}

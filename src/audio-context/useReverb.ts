@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect } from 'react';
 import { setGainValueAtTime } from '../utils/audio';
+import { useLazyRef } from '../utils/useLazyRef';
 
 const IRs = {
   church: {
@@ -44,32 +45,39 @@ export function useReverb({
   setWetGain: (value: number) => void;
   setSelectedIR: (selectedIR: IRType) => void;
 } {
-  const dryGainRef = useRef<GainNode>(
-    new GainNode(audioContext, { gain: dryGain }),
+  const dryGainRef = useLazyRef(
+    () => new GainNode(audioContext, { gain: dryGain }),
   );
-  const IRFactorGainRef = useRef<GainNode>(
-    new GainNode(audioContext, { gain: IRs[selectedIR].gainFactor }),
+  const IRFactorGainRef = useLazyRef(
+    () => new GainNode(audioContext, { gain: IRs[selectedIR].gainFactor }),
   );
-  const wetGainRef = useRef<GainNode>(
-    new GainNode(audioContext, { gain: wetGain }),
+  const wetGainRef = useLazyRef(
+    () => new GainNode(audioContext, { gain: wetGain }),
   );
-  const convolverRef = useRef<ConvolverNode>(
-    new ConvolverNode(audioContext, { buffer: null }),
+  const convolverRef = useLazyRef(
+    () => new ConvolverNode(audioContext, { buffer: null }),
   );
 
   useEffect(() => {
-    convolverRef.current.connect(wetGainRef.current);
-    wetGainRef.current.connect(IRFactorGainRef.current);
-    IRFactorGainRef.current.connect(destination);
-    dryGainRef.current.connect(destination);
-  }, [
-    convolverRef,
-    dryGainRef,
-    IRFactorGainRef,
-    wetGainRef,
-    destination,
-    audioContext,
-  ]);
+    const convolver = convolverRef.current;
+    const wet = wetGainRef.current;
+    const irFactor = IRFactorGainRef.current;
+    const dry = dryGainRef.current;
+
+    convolver.connect(wet);
+    wet.connect(irFactor);
+    irFactor.connect(destination);
+    dry.connect(destination);
+
+    // Disconnect on unmount so a StrictMode remount (or a destination change)
+    // doesn't leave doubled routing edges feeding the bus.
+    return () => {
+      convolver.disconnect(wet);
+      wet.disconnect(irFactor);
+      irFactor.disconnect(destination);
+      dry.disconnect(destination);
+    };
+  }, [convolverRef, wetGainRef, IRFactorGainRef, dryGainRef, destination]);
 
   const setSelectedIR = useCallback(
     async (selectedIR: IRType) => {

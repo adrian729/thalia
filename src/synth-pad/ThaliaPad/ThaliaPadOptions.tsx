@@ -69,15 +69,15 @@ export function ThaliaPadOptions({
   }, [currentReverb, reverbEnabled, toggleReverb]);
 
   const selectNextReverb = useCallback(() => {
-    setReverbIdx((prevIdx) => {
-      const newIdx = (prevIdx + 1) % REVERB_TYPES.length;
-      const nextReverb = REVERB_TYPES[newIdx];
-      if (nextReverb) {
-        setSelectedIR(nextReverb);
-      }
-      return newIdx;
-    });
-  }, [setReverbIdx, setSelectedIR]);
+    // Compute the next index and run the IR fetch outside the updater — updaters
+    // must be pure, and StrictMode would otherwise fire the fetch twice.
+    const newIdx = (reverbIdx + 1) % REVERB_TYPES.length;
+    const nextReverb = REVERB_TYPES[newIdx];
+    if (nextReverb) {
+      setSelectedIR(nextReverb);
+    }
+    setReverbIdx(newIdx);
+  }, [reverbIdx, setSelectedIR]);
 
   const initialOctaveIndex = useMemo(
     () => (optionsPosition === 'left' ? 2 : 1),
@@ -356,7 +356,7 @@ function WaveTypeToggle({
       }
       return [...prev, waveType];
     });
-  }, [waveType]);
+  }, [waveType, setEnabledOscillatorTypes]);
 
   return (
     <button

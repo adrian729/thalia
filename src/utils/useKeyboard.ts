@@ -1,23 +1,23 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { KeyHandlers } from './types';
 
 interface UseKeyboardProps {
   keyMappings: Record<string, KeyHandlers>;
 }
 export default function useKeyboard({ keyMappings }: UseKeyboardProps) {
-  const [_keysPressed, setKeysPressed] = useState<string[]>([]);
+  // Track held keys in a ref (mutable, imperative) rather than state. The handlers
+  // fire audio side effects, so they must run OUTSIDE any setState updater:
+  // StrictMode double-invokes updaters, which previously double-triggered notes.
+  const pressed = useRef<Set<string>>(new Set());
 
   const keyDownHandler = useCallback(
     (event: KeyboardEvent) => {
       const key = event.key.toLowerCase();
-      setKeysPressed((prev) => {
-        if (prev.includes(key)) {
-          return prev;
-        }
-
-        keyMappings[key]?.onKeyDown?.();
-        return [...prev, key];
-      });
+      if (pressed.current.has(key)) {
+        return;
+      }
+      pressed.current.add(key);
+      keyMappings[key]?.onKeyDown?.();
     },
     [keyMappings],
   );
@@ -25,14 +25,11 @@ export default function useKeyboard({ keyMappings }: UseKeyboardProps) {
   const keyUpHandler = useCallback(
     (event: KeyboardEvent) => {
       const key = event.key.toLowerCase();
-      setKeysPressed((prev) => {
-        if (!prev.includes(key)) {
-          return prev;
-        }
-
-        keyMappings[key]?.onKeyUp?.();
-        return prev.filter((k) => k !== key);
-      });
+      if (!pressed.current.has(key)) {
+        return;
+      }
+      pressed.current.delete(key);
+      keyMappings[key]?.onKeyUp?.();
     },
     [keyMappings],
   );

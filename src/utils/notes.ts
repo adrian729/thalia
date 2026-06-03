@@ -14,14 +14,14 @@ export const BEMOL: NoteAccidental = '♭';
 export const NATURAL: NoteAccidental = '♮';
 export const SHARP: NoteAccidental = '♯';
 
-export type NoteType = {
+export interface NoteType {
   midiId: number;
   frequency: number;
   name?: NoteName;
   accidental?: NoteAccidental;
   octave?: number;
   pianoKey?: number;
-};
+}
 
 export const emptyNote: NoteType = {
   midiId: -1,

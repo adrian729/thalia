@@ -51,8 +51,13 @@ export default tseslint.config(
   eslintPluginPrettierRecommended,
   // Overwrite rules from eslintPluginPrettierRecommended
   {
-    'no-unused-vars': 'off',
-    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-    'react-hooks/rules-of-hooks': 'error',
+    rules: {
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
+      'react-hooks/rules-of-hooks': 'error',
+    },
   },
 );
