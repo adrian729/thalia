@@ -17,7 +17,7 @@ import { cn } from '../utils/styles';
 import { KeyHandlers } from '../utils/types';
 import useKeyboard from '../utils/useKeyboard';
 
-type DrumPadConfigItem = {
+interface DrumPadConfigItem {
   playInstrument: ({
     audioContext,
     destination,
@@ -28,7 +28,7 @@ type DrumPadConfigItem = {
   playingClasses?: ClassValue;
   extraClasses?: ClassValue;
   keys: string[];
-};
+}
 const drumPadConfig: DrumPadConfigItem[] = [
   {
     playInstrument: playCymbal1,

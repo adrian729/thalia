@@ -19,12 +19,12 @@ import useKeyboard from '../../utils/useKeyboard';
 const ARROW_KEYS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'] as const;
 type ArrowKey = (typeof ARROW_KEYS)[number];
 
-type Box = {
+interface Box {
   width: number;
   height: number;
   top: number;
   left: number;
-};
+}
 const defaultBox = {
   width: 0,
   height: 0,

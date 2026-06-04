@@ -1,11 +1,4 @@
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { MainAudioContext } from '../../audio-context/MainAudioContext';
 import { useOscillator } from '../../audio-context/useOscillator';
 import { useReverb } from '../../audio-context/useReverb';
@@ -13,6 +6,7 @@ import { notes } from '../../utils/notes';
 import { cn } from '../../utils/styles';
 import { KeyHandlers } from '../../utils/types';
 import useKeyboard from '../../utils/useKeyboard';
+import { useLazyRef } from '../../utils/useLazyRef';
 import { ThaliaPadOptions } from './ThaliaPadOptions';
 import {
   INITIAL_MIDI_ID,
@@ -38,7 +32,9 @@ export default function ThaliaPad({
 
   const mainAudioContext = useContext(MainAudioContext);
   const { audioContext, mainNode } = mainAudioContext.state;
-  const destinationRef = useRef(new GainNode(audioContext, { gain: 1 }));
+  const destinationRef = useLazyRef(
+    () => new GainNode(audioContext, { gain: 1 }),
+  );
 
   const [reverbEnabled, setReverbEnabled] = useState(true);
   const wetGainValue = useMemo(() => 0.2, []);
@@ -51,16 +47,22 @@ export default function ThaliaPad({
   });
 
   useEffect(() => {
-    destinationRef.current.connect(dry);
-    destinationRef.current.connect(wet);
+    const node = destinationRef.current;
+    node.connect(dry);
+    node.connect(wet);
+    return () => {
+      node.disconnect(dry);
+      node.disconnect(wet);
+    };
   }, [destinationRef, dry, wet]);
 
   const toggleReverb = useCallback(() => {
-    setReverbEnabled((prev) => {
-      setWetGain(prev ? 0 : wetGainValue);
-      return !prev;
-    });
-  }, [setWetGain, wetGainValue]);
+    // Run the audio side effect outside the state updater: updaters must be pure
+    // (StrictMode double-invokes them, which would set the gain twice).
+    const next = !reverbEnabled;
+    setWetGain(next ? wetGainValue : 0);
+    setReverbEnabled(next);
+  }, [reverbEnabled, setWetGain, wetGainValue]);
 
   const [detune, setDetune] = useState(0);
 
@@ -273,7 +275,7 @@ function ThaliaPadButton({
 
       setIsPlaying(true);
     }
-  }, [isPlaying, startSine, startSquare, startSawtooth, startTriangle]);
+  }, [isPlaying, enabledOscillatorTypes, startMethods]);
 
   const stopOscillators = useCallback(() => {
     if (isPlaying) {
@@ -314,7 +316,13 @@ function ThaliaPadButton({
         }
       });
     }
-  }, [isPlaying, enabledOscillatorTypes, startMethods, playingOscillators]);
+  }, [
+    isPlaying,
+    enabledOscillatorTypes,
+    startMethods,
+    stopMethods,
+    playingOscillators,
+  ]);
 
   useKeyboard({ keyMappings });
 

@@ -10,7 +10,7 @@ const useSafeContext = <T>(context: Context<T>) => {
     );
   }
 
-  return value!;
+  return value;
 };
 
 export default useSafeContext;
