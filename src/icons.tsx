@@ -276,6 +276,70 @@ export const TriplePlusIcon = ({
   );
 };
 
+export const QuestionMarkIcon = ({
+  title = 'Help',
+  ...props
+}: { title?: string } & SVGProps<SVGSVGElement>) => {
+  return (
+    <>
+      <svg
+        xmlns='http://www.w3.org/2000/svg'
+        width='100%'
+        viewBox='0 0 24 24'
+        fill='none'
+        aria-hidden='true'
+        {...props}
+      >
+        <title>{title}</title>
+        <path
+          d='M9 9a3 3 0 1 1 4.5 2.6c-.9.52-1.5 1.2-1.5 2.4v.5'
+          stroke='currentColor'
+          strokeWidth='2'
+          fill='none'
+          strokeLinecap='round'
+          strokeLinejoin='round'
+        />
+        <path
+          d='M12 18.5h.01'
+          stroke='currentColor'
+          strokeWidth='2.5'
+          strokeLinecap='round'
+          strokeLinejoin='round'
+        />
+      </svg>
+      <span className='sr-only'>{title}</span>
+    </>
+  );
+};
+
+export const CloseIcon = ({
+  title = 'Close',
+  ...props
+}: { title?: string } & SVGProps<SVGSVGElement>) => {
+  return (
+    <>
+      <svg
+        xmlns='http://www.w3.org/2000/svg'
+        width='100%'
+        viewBox='0 0 24 24'
+        fill='none'
+        aria-hidden='true'
+        {...props}
+      >
+        <title>{title}</title>
+        <path
+          d='M6 6l12 12M18 6L6 18'
+          stroke='currentColor'
+          strokeWidth='2'
+          strokeLinecap='round'
+          strokeLinejoin='round'
+        />
+      </svg>
+      <span className='sr-only'>{title}</span>
+    </>
+  );
+};
+
 export const SineWaveIcon = ({
   title = 'Sine Wave',
   ...props

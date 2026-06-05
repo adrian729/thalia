@@ -7,6 +7,7 @@ function draw(
   analyser: AnalyserNode,
   dataArray: Uint8Array,
   deltaTime: DOMHighResTimeStamp,
+  showFps: boolean,
 ) {
   const fps = 1000 / deltaTime;
 
@@ -17,11 +18,13 @@ function draw(
 
   analyser.getByteTimeDomainData(dataArray);
 
-  canvasCtx.fillStyle = 'rgb(200 200 200)';
+  // sky-300, matching the pad button palette
+  canvasCtx.fillStyle = 'rgb(125 211 252)';
   canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
 
   canvasCtx.lineWidth = 2;
-  canvasCtx.strokeStyle = 'rgb(0 0 0)';
+  // sky-900
+  canvasCtx.strokeStyle = 'rgb(12 74 110)';
 
   canvasCtx.beginPath();
   for (let i = 0; i < bufferLength; i++) {
@@ -39,17 +42,21 @@ function draw(
   canvasCtx.lineTo(WIDTH, HEIGHT / 2);
   canvasCtx.stroke();
 
-  canvasCtx.font = '12px Arial';
-  canvasCtx.fillStyle = 'black';
-  canvasCtx.fillText(`${Math.round(fps)} fps`, 10, 20);
+  if (showFps) {
+    canvasCtx.font = '12px Arial';
+    canvasCtx.fillStyle = 'rgb(12 74 110)';
+    canvasCtx.fillText(`${Math.round(fps)} fps`, 10, 20);
+  }
 }
 
 export default function Analyser({
   nodeToAnalyze,
   audioContext,
+  showFps,
 }: {
   nodeToAnalyze: AudioNode;
   audioContext: AudioContext;
+  showFps: boolean;
 }) {
   const fpsRef = useRef(8); // seems to work pretty well with low values, if we manage to get current freq (or just pass it for the keyboard) then we could use the first octave for each note
   const { analyser, dataArray } = useAnalyser({ nodeToAnalyze, audioContext });
@@ -63,7 +70,9 @@ export default function Analyser({
             _timestamp: DOMHighResTimeStamp,
             deltaTime: DOMHighResTimeStamp,
             _frameCount: number,
-          ) => draw(canvasCtx, analyser, dataArray as Uint8Array, deltaTime)}
+          ) =>
+            draw(canvasCtx, analyser, dataArray as Uint8Array, deltaTime, showFps)
+          }
           fpsRef={fpsRef}
         />
       </div>

@@ -1,6 +1,8 @@
 import { useContext, useState } from 'react';
 import Analyser from './analyser';
 import { MainAudioContext } from './audio-context/MainAudioContext';
+import HelpModal from './HelpModal';
+import { QuestionMarkIcon } from './icons';
 import DrumPad from './synth-pad/DrumPad';
 import ThaliaPad from './synth-pad/ThaliaPad/ThaliaPad';
 
@@ -8,7 +10,9 @@ function App() {
   const mainAudioContext = useContext(MainAudioContext);
   const { audioContext, mainNode } = mainAudioContext?.state ?? {};
 
-  const [helperEnabled, _setHelperEnabled] = useState(false);
+  const [helperEnabled, setHelperEnabled] = useState(false);
+  const [showFps, setShowFps] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
 
   if (!mainAudioContext?.state || !audioContext || !mainNode) {
     return (
@@ -28,9 +32,30 @@ function App() {
   // TODO: pass audioContext/state to components and remove the Context
   return (
     <div className='w-full h-screen bg-gray-100'>
+      <button
+        type='button'
+        className='cursor-pointer fixed top-4 right-4 z-40 w-9 aspect-square rounded-full bg-gray-300 text-gray-600 hover:bg-sky-300 hover:text-sky-900'
+        onClick={() => setHelpOpen(true)}
+      >
+        <div className='w-6 mx-auto'>
+          <QuestionMarkIcon />
+        </div>
+      </button>
+      <HelpModal
+        open={helpOpen}
+        onClose={() => setHelpOpen(false)}
+        helperEnabled={helperEnabled}
+        setHelperEnabled={setHelperEnabled}
+        showFps={showFps}
+        setShowFps={setShowFps}
+      />
       <div className='w-full h-full flex justify-center items-center'>
         <div className='flex flex-col justify-center items-center gap-4'>
-          <Analyser nodeToAnalyze={mainNode} audioContext={audioContext} />
+          <Analyser
+            nodeToAnalyze={mainNode}
+            audioContext={audioContext}
+            showFps={showFps}
+          />
           <div className='flex gap-2'>
             <ThaliaPad
               keysMappingKey='left'
