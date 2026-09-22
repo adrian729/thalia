@@ -59,6 +59,10 @@ function playSynthOscillator({
   oscGain.gain.exponentialRampToValueAtTime(0.001, currentTime + duration);
   osc.start(currentTime);
   osc.stop(currentTime + duration);
+
+  osc.onended = () => {
+    oscGain.disconnect();
+  };
 }
 
 export function playSynth({
@@ -84,6 +88,13 @@ export function playSynth({
   const gainControl = new GainNode(audioContext, { gain });
   gainControl.gain.exponentialRampToValueAtTime(0.001, currentTime + duration);
   gainControl.connect(destination);
+
+  // gainControl has no single terminal source node of its own (its input
+  // oscillators each clean up their own downstream node), so hang its
+  // disconnect off a timeout keyed to the note's total duration instead.
+  setTimeout(() => {
+    gainControl.disconnect();
+  }, duration * 1000);
 
   if (oscillatorTypes.includes('sine')) {
     playSynthOscillator({
@@ -198,6 +209,23 @@ export function playKick({
 
   noiseSource.start(currentTime);
   noiseSource.stop(currentTime + 0.5);
+
+  // Three independent source nodes share the downstream mixer nodes, so only
+  // disconnect once all three have finished.
+  let sourcesRemaining = 3;
+  const cleanup = () => {
+    sourcesRemaining -= 1;
+    if (sourcesRemaining > 0) return;
+
+    oscillatorGainControl.disconnect();
+    noiseGainControl.disconnect();
+    kickGain.disconnect();
+    noiseFilter.disconnect();
+    noiseEnvelope.disconnect();
+  };
+  kickOscillator.onended = cleanup;
+  randOscillator.onended = cleanup;
+  noiseSource.onended = cleanup;
 }
 
 export function playSnare({
@@ -249,6 +277,21 @@ export function playSnare({
 
   snareOscillator.stop(currentTime + 0.2);
   snareSource.stop(currentTime + 0.2);
+
+  // Two independent source nodes share gainControl, so only disconnect once
+  // both have finished.
+  let sourcesRemaining = 2;
+  const cleanup = () => {
+    sourcesRemaining -= 1;
+    if (sourcesRemaining > 0) return;
+
+    gainControl.disconnect();
+    snareFilter.disconnect();
+    snareEnvelope.disconnect();
+    oscillatorEnvelope.disconnect();
+  };
+  snareSource.onended = cleanup;
+  snareOscillator.onended = cleanup;
 }
 
 export function playHihat({
@@ -284,6 +327,18 @@ export function playHihat({
   hihatGain.connect(gainControl);
 
   // Oscillators
+  // All oscillators share the downstream filter/gain chain, so only
+  // disconnect it once every oscillator has finished.
+  let sourcesRemaining = ratios.length;
+  const cleanup = () => {
+    sourcesRemaining -= 1;
+    if (sourcesRemaining > 0) return;
+
+    gainControl.disconnect();
+    hihatGain.disconnect();
+    bandpass.disconnect();
+    highpass.disconnect();
+  };
   ratios.forEach((ratio) => {
     const osc = audioContext.createOscillator();
     osc.type = 'square';
@@ -291,6 +346,7 @@ export function playHihat({
     osc.connect(bandpass);
     osc.start(currentTime);
     osc.stop(currentTime + 0.3);
+    osc.onended = cleanup;
   });
 
   // Volume envelope
@@ -333,6 +389,18 @@ export function playCymbal1({
   hihatGain.connect(gainControl);
 
   // Oscillators
+  // All oscillators share the downstream filter/gain chain, so only
+  // disconnect it once every oscillator has finished.
+  let sourcesRemaining = ratios.length;
+  const cleanup = () => {
+    sourcesRemaining -= 1;
+    if (sourcesRemaining > 0) return;
+
+    gainControl.disconnect();
+    hihatGain.disconnect();
+    bandpass.disconnect();
+    highpass.disconnect();
+  };
   ratios.forEach((ratio) => {
     const osc = audioContext.createOscillator();
     osc.type = 'square';
@@ -340,6 +408,7 @@ export function playCymbal1({
     osc.connect(bandpass);
     osc.start(currentTime);
     osc.stop(currentTime + 2);
+    osc.onended = cleanup;
   });
 
   // Volume envelope
@@ -382,6 +451,18 @@ export function playCymbal2({
   hihatGain.connect(gainControl);
 
   // Oscillators
+  // All oscillators share the downstream filter/gain chain, so only
+  // disconnect it once every oscillator has finished.
+  let sourcesRemaining = ratios.length;
+  const cleanup = () => {
+    sourcesRemaining -= 1;
+    if (sourcesRemaining > 0) return;
+
+    gainControl.disconnect();
+    hihatGain.disconnect();
+    bandpass.disconnect();
+    highpass.disconnect();
+  };
   ratios.forEach((ratio) => {
     const osc = audioContext.createOscillator();
     osc.type = 'square';
@@ -389,6 +470,7 @@ export function playCymbal2({
     osc.connect(bandpass);
     osc.start(currentTime);
     osc.stop(currentTime + 2);
+    osc.onended = cleanup;
   });
 
   // Volume envelope
@@ -431,6 +513,18 @@ export function playCymbal3({
   hihatGain.connect(gainControl);
 
   // Oscillators
+  // All oscillators share the downstream filter/gain chain, so only
+  // disconnect it once every oscillator has finished.
+  let sourcesRemaining = ratios.length;
+  const cleanup = () => {
+    sourcesRemaining -= 1;
+    if (sourcesRemaining > 0) return;
+
+    gainControl.disconnect();
+    hihatGain.disconnect();
+    bandpass.disconnect();
+    highpass.disconnect();
+  };
   ratios.forEach((ratio) => {
     const osc = audioContext.createOscillator();
     osc.type = 'square';
@@ -438,6 +532,7 @@ export function playCymbal3({
     osc.connect(bandpass);
     osc.start(currentTime);
     osc.stop(currentTime + 3);
+    osc.onended = cleanup;
   });
 
   // Volume envelope
@@ -478,6 +573,12 @@ export function playTom1({
 
   tomOscillator.start(currentTime);
   tomOscillator.stop(currentTime + 0.3);
+
+  tomOscillator.onended = () => {
+    gainControl.disconnect();
+    tomFilter.disconnect();
+    tomGain.disconnect();
+  };
 }
 
 export function playTom2({
@@ -512,6 +613,12 @@ export function playTom2({
 
   tomOscillator.start(currentTime);
   tomOscillator.stop(currentTime + 0.2);
+
+  tomOscillator.onended = () => {
+    gainControl.disconnect();
+    tomFilter.disconnect();
+    tomGain.disconnect();
+  };
 }
 
 export function playTom3({
@@ -570,6 +677,23 @@ export function playTom3({
 
   noiseSource.start(currentTime);
   noiseSource.stop(currentTime + 1.5);
+
+  // Two independent source nodes (oscillator + noise), so only disconnect
+  // their downstream nodes once both have finished.
+  let sourcesRemaining = 2;
+  const cleanup = () => {
+    sourcesRemaining -= 1;
+    if (sourcesRemaining > 0) return;
+
+    gainControl.disconnect();
+    tomFilter.disconnect();
+    tomGain.disconnect();
+    noiseGain.disconnect();
+    noiseFilter.disconnect();
+    noiseEnvelope.disconnect();
+  };
+  tomOscillator.onended = cleanup;
+  noiseSource.onended = cleanup;
 }
 
 export function clampFrequency(frequency: number): number {
