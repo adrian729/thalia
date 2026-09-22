@@ -39,6 +39,11 @@ export function useOscillator({
   const oscillatorRef = useRef<OscillatorNode | null>(null);
   const gainNodeRef = useRef<GainNode | null>(null);
 
+  // Read by start() so a joystick drag (which updates detune every pointermove)
+  // doesn't give start a new identity and cascade listener teardowns downstream.
+  const detuneRef = useRef(detune);
+  detuneRef.current = detune;
+
   const stop = useCallback(() => {
     const oscillator = oscillatorRef.current;
     const gainNode = gainNodeRef.current;
@@ -70,7 +75,7 @@ export function useOscillator({
     const oscillator = new OscillatorNode(audioContext, {
       frequency,
       type,
-      detune,
+      detune: detuneRef.current,
     });
     oscillator.connect(gainNode).connect(destination);
     oscillator.start();
@@ -85,7 +90,7 @@ export function useOscillator({
 
     oscillatorRef.current = oscillator;
     gainNodeRef.current = gainNode;
-  }, [stop, audioContext, gainValue, frequency, type, detune, destination]);
+  }, [stop, audioContext, gainValue, frequency, type, destination]);
 
   useEffect(() => {
     if (gainNodeRef.current) {
