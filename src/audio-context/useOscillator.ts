@@ -1,6 +1,7 @@
-import { useCallback, useContext, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { setGainValueAtTime } from '../utils/audio';
 import { clamp } from '../utils/math';
+import useSafeContext from '../utils/useSafeContext';
 import { MainAudioContext } from './MainAudioContext';
 
 // Short, click-free fades (seconds). Anchoring the ramp at the gain param's
@@ -34,7 +35,7 @@ export function useOscillator({
 
   const {
     state: { audioContext },
-  } = useContext(MainAudioContext);
+  } = useSafeContext(MainAudioContext);
 
   const oscillatorRef = useRef<OscillatorNode | null>(null);
   const gainNodeRef = useRef<GainNode | null>(null);

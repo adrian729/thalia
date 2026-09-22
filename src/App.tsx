@@ -1,13 +1,14 @@
-import { useContext, useState } from 'react';
+import { useState } from 'react';
 import Analyser from './analyser';
 import { MainAudioContext } from './audio-context/MainAudioContext';
 import HelpModal from './HelpModal';
 import { QuestionMarkIcon } from './icons';
 import DrumPad from './synth-pad/DrumPad';
 import ThaliaPad from './synth-pad/ThaliaPad/ThaliaPad';
+import useSafeContext from './utils/useSafeContext';
 
 function App() {
-  const mainAudioContext = useContext(MainAudioContext);
+  const mainAudioContext = useSafeContext(MainAudioContext);
   const { audioContext, mainNode } = mainAudioContext?.state ?? {};
 
   const [helperEnabled, setHelperEnabled] = useState(false);

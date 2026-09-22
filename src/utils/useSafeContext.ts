@@ -1,6 +1,6 @@
 import { Context, useContext } from 'react';
 
-const useSafeContext = <T>(context: Context<T>) => {
+const useSafeContext = <T>(context: Context<T | undefined>): T => {
   const value = useContext(context);
 
   if (value === undefined) {

@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { MainAudioContext } from '../../audio-context/MainAudioContext';
 import { useOscillator } from '../../audio-context/useOscillator';
 import { useReverb } from '../../audio-context/useReverb';
@@ -7,6 +7,7 @@ import { cn } from '../../utils/styles';
 import { KeyHandlers } from '../../utils/types';
 import useKeyboard from '../../utils/useKeyboard';
 import { useLazyRef } from '../../utils/useLazyRef';
+import useSafeContext from '../../utils/useSafeContext';
 import { ThaliaPadOptions } from './ThaliaPadOptions';
 import {
   INITIAL_MIDI_ID,
@@ -30,7 +31,7 @@ export default function ThaliaPad({
     OscillatorType[]
   >(['sine', 'square', 'sawtooth', 'triangle']);
 
-  const mainAudioContext = useContext(MainAudioContext);
+  const mainAudioContext = useSafeContext(MainAudioContext);
   const { audioContext, mainNode } = mainAudioContext.state;
   const destinationRef = useLazyRef(
     () => new GainNode(audioContext, { gain: 1 }),

@@ -1,5 +1,5 @@
 import { ClassValue } from 'cn';
-import { useContext, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { MainAudioContext } from '../audio-context/MainAudioContext';
 import { useReverb } from '../audio-context/useReverb';
 import {
@@ -17,6 +17,7 @@ import { cn } from '../utils/styles';
 import { KeyHandlers } from '../utils/types';
 import useKeyboard from '../utils/useKeyboard';
 import { useLazyRef } from '../utils/useLazyRef';
+import useSafeContext from '../utils/useSafeContext';
 
 interface DrumPadConfigItem {
   playInstrument: ({
@@ -98,7 +99,7 @@ const drumPadConfig: DrumPadConfigItem[] = [
 ] as const;
 
 export default function DrumPad() {
-  const mainAudioContext = useContext(MainAudioContext);
+  const mainAudioContext = useSafeContext(MainAudioContext);
   const { audioContext, mainNode } = mainAudioContext.state;
   const destinationRef = useLazyRef(
     () => new GainNode(audioContext, { gain: 1 }),
