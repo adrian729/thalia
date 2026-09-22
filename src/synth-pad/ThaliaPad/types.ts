@@ -1,4 +1,4 @@
-import { ClassValue } from 'clsx';
+import { ClassValue } from 'cn';
 
 export type Position = 'left' | 'right';
 

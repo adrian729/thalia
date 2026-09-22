@@ -1,4 +1,4 @@
-import { ClassValue } from 'clsx';
+import { ClassValue } from 'cn';
 import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { MainAudioContext } from '../audio-context/MainAudioContext';
 import { useReverb } from '../audio-context/useReverb';
