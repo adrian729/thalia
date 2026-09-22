@@ -1,5 +1,5 @@
 import { ClassValue } from 'cn';
-import { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import { MainAudioContext } from '../audio-context/MainAudioContext';
 import { useReverb } from '../audio-context/useReverb';
 import {
@@ -16,6 +16,7 @@ import {
 import { cn } from '../utils/styles';
 import { KeyHandlers } from '../utils/types';
 import useKeyboard from '../utils/useKeyboard';
+import { useLazyRef } from '../utils/useLazyRef';
 
 interface DrumPadConfigItem {
   playInstrument: ({
@@ -89,7 +90,9 @@ const drumPadConfig: DrumPadConfigItem[] = [
 export default function DrumPad() {
   const mainAudioContext = useContext(MainAudioContext);
   const { audioContext, mainNode } = mainAudioContext.state;
-  const destinationRef = useRef(new GainNode(audioContext, { gain: 1 }));
+  const destinationRef = useLazyRef(
+    () => new GainNode(audioContext, { gain: 1 }),
+  );
   const { dry, wet } = useReverb({
     selectedIR: 'basement',
     dryGain: 0.5,
@@ -99,8 +102,13 @@ export default function DrumPad() {
   });
 
   useEffect(() => {
-    destinationRef.current.connect(dry);
-    destinationRef.current.connect(wet);
+    const node = destinationRef.current;
+    node.connect(dry);
+    node.connect(wet);
+    return () => {
+      node.disconnect(dry);
+      node.disconnect(wet);
+    };
   }, [destinationRef, dry, wet]);
 
   return (
