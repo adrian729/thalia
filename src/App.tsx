@@ -29,7 +29,6 @@ function App() {
     );
   }
 
-  // TODO: pass audioContext/state to components and remove the Context
   return (
     <div className='w-full h-screen bg-gray-100'>
       <button
