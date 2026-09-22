@@ -29,22 +29,22 @@ A browser-based synthesizer playground built with React and the Web Audio API. P
 ## Getting started
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm run dev
 ```
 
 Open the printed local URL (default http://localhost:5173/thalia/). The audio context unlocks on the first key press or pointer press (e.g. a pad click) — needed on Safari/iOS, which won't auto-resume it otherwise.
 
 ## Scripts
 
-| Command                   | Description                              |
-| ------------------------- | ---------------------------------------- |
-| `npm run dev`             | Start the dev server                     |
-| `npm run build`           | Type-check and build for production      |
-| `npm run preview`         | Preview the production build locally     |
-| `npm run lint`            | Run ESLint                               |
-| `npm run prettier-format` | Format the codebase with Prettier        |
-| `npm run deploy`          | Build and publish to GitHub Pages        |
+| Command                    | Description                          |
+| -------------------------- | ------------------------------------ |
+| `pnpm run dev`             | Start the dev server                 |
+| `pnpm run build`           | Type-check and build for production  |
+| `pnpm run preview`         | Preview the production build locally |
+| `pnpm run lint`            | Run ESLint                           |
+| `pnpm run prettier-format` | Format the codebase with Prettier    |
+| `pnpm run deploy`          | Build and publish to GitHub Pages    |
 
 ## Project structure
 
