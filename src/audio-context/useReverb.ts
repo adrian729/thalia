@@ -129,23 +129,33 @@ export function useReverb({
     setSelectedIR(selectedIR);
   }, [selectedIR, setSelectedIR]);
 
-  return {
-    dry: dryGainRef.current,
-    wet: convolverRef.current,
-    setDryGain: (gain: number) =>
+  const setDryGain = useCallback(
+    (gain: number) =>
       setGainValueAtTime({
         gain,
         timeElapse: 0.05,
         gainNode: dryGainRef.current,
         audioContext,
       }),
-    setWetGain: (gain: number) =>
+    [audioContext, dryGainRef],
+  );
+
+  const setWetGain = useCallback(
+    (gain: number) =>
       setGainValueAtTime({
         gain,
         timeElapse: 0.05,
         gainNode: wetGainRef.current,
         audioContext,
       }),
+    [audioContext, wetGainRef],
+  );
+
+  return {
+    dry: dryGainRef.current,
+    wet: convolverRef.current,
+    setDryGain,
+    setWetGain,
     setSelectedIR,
   };
 }
