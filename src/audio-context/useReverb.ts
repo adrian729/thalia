@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { setGainValueAtTime } from '../utils/audio';
 import { useLazyRef } from '../utils/useLazyRef';
 
@@ -24,6 +24,26 @@ export type IRType = keyof typeof IRs;
 
 function getIRPath(selectedIR: IRType) {
   return `IR/${IRs[selectedIR].path}`;
+}
+
+const irCache = new Map<string, Promise<AudioBuffer>>();
+
+function loadIR(
+  audioContext: AudioContext,
+  selectedIR: IRType,
+): Promise<AudioBuffer> {
+  const path = getIRPath(selectedIR);
+  const cached = irCache.get(path);
+  if (cached) return cached;
+
+  const promise = fetch(path)
+    .then((response) => response.arrayBuffer())
+    .then((buffer) => audioContext.decodeAudioData(buffer));
+
+  irCache.set(path, promise);
+  promise.catch(() => irCache.delete(path));
+
+  return promise;
 }
 
 export function useReverb({
@@ -57,6 +77,7 @@ export function useReverb({
   const convolverRef = useLazyRef(
     () => new ConvolverNode(audioContext, { buffer: null }),
   );
+  const latestRequestedIRRef = useRef<IRType>(selectedIR);
 
   useEffect(() => {
     const convolver = convolverRef.current;
@@ -82,19 +103,24 @@ export function useReverb({
   const setSelectedIR = useCallback(
     async (selectedIR: IRType) => {
       console.info('Setting selected IR:', selectedIR);
-      fetch(getIRPath(selectedIR)).then((response) =>
-        response.arrayBuffer().then((buffer) => {
-          audioContext.decodeAudioData(buffer).then((audioBuffer) => {
-            convolverRef.current.buffer = audioBuffer;
-            setGainValueAtTime({
-              gain: IRs[selectedIR].gainFactor,
-              timeElapse: 0.05,
-              gainNode: IRFactorGainRef.current,
-              audioContext,
-            });
-          });
-        }),
-      );
+
+      latestRequestedIRRef.current = selectedIR;
+
+      try {
+        const audioBuffer = await loadIR(audioContext, selectedIR);
+        if (latestRequestedIRRef.current !== selectedIR) return;
+
+        convolverRef.current.buffer = audioBuffer;
+        setGainValueAtTime({
+          gain: IRs[selectedIR].gainFactor,
+          timeElapse: 0.05,
+          gainNode: IRFactorGainRef.current,
+          audioContext,
+        });
+      } catch (error) {
+        if (latestRequestedIRRef.current !== selectedIR) return;
+        console.error('Failed to load impulse response:', selectedIR, error);
+      }
     },
     [audioContext, convolverRef, IRFactorGainRef],
   );
