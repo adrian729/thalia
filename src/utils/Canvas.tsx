@@ -32,8 +32,9 @@ export default function Canvas({
     }
 
     let frameCount = 0;
+    let currentFrameId: number;
     const render = (timestamp: DOMHighResTimeStamp) => {
-      const animationFrameID = window.requestAnimationFrame(render);
+      currentFrameId = window.requestAnimationFrame(render);
 
       const deltaTime = timestamp - renderTimestampRef.current;
       const fpsInterval = 1000 / (fpsRef?.current ?? 60);
@@ -42,14 +43,12 @@ export default function Canvas({
         frameCount++;
         draw(canvasCtx, timestamp, deltaTime, frameCount);
       }
-
-      return animationFrameID;
     };
 
-    const animationFrameId = render(performance.now());
+    render(performance.now());
 
     return () => {
-      window.cancelAnimationFrame(animationFrameId);
+      window.cancelAnimationFrame(currentFrameId);
     };
   }, [draw, fpsRef]);
 

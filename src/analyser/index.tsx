@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import Canvas from '../utils/Canvas';
 import useAnalyser from './useAnalyser';
 
@@ -61,26 +61,20 @@ export default function Analyser({
   const fpsRef = useRef(8); // seems to work pretty well with low values, if we manage to get current freq (or just pass it for the keyboard) then we could use the first octave for each note
   const { analyser, dataArray } = useAnalyser({ nodeToAnalyze, audioContext });
 
+  const drawCallback = useCallback(
+    (
+      canvasCtx: CanvasRenderingContext2D,
+      _timestamp: DOMHighResTimeStamp,
+      deltaTime: DOMHighResTimeStamp,
+      _frameCount: number,
+    ) => draw(canvasCtx, analyser, dataArray as Uint8Array, deltaTime, showFps),
+    [analyser, dataArray, showFps],
+  );
+
   return (
     <div className='p-4 bg-gray-50 border-2 border-gray-400 rounded-xl'>
       <div className='overflow-hidden rounded-xl'>
-        <Canvas
-          draw={(
-            canvasCtx: CanvasRenderingContext2D,
-            _timestamp: DOMHighResTimeStamp,
-            deltaTime: DOMHighResTimeStamp,
-            _frameCount: number,
-          ) =>
-            draw(
-              canvasCtx,
-              analyser,
-              dataArray as Uint8Array,
-              deltaTime,
-              showFps,
-            )
-          }
-          fpsRef={fpsRef}
-        />
+        <Canvas draw={drawCallback} fpsRef={fpsRef} />
       </div>
     </div>
   );
