@@ -957,12 +957,4 @@ export const notes: NoteType[] = [
     octave: 9,
     pianoKey: 107,
   },
-  {
-    midiId: 128,
-    frequency: 13289.8,
-    name: A,
-    accidental: BEMOL,
-    octave: 9,
-    pianoKey: 108,
-  },
 ];
