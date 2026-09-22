@@ -34,12 +34,39 @@ export default function useKeyboard({ keyMappings }: UseKeyboardProps) {
     [keyMappings],
   );
 
+  // Losing focus means the matching keyup is never delivered to this document,
+  // so held keys would stay "pressed" forever: the note keeps sounding and the
+  // next keydown for that key is swallowed by the guard above.
+  const releaseAllHandler = useCallback(() => {
+    if (pressed.current.size === 0) {
+      return;
+    }
+    const keys = [...pressed.current];
+    pressed.current.clear();
+    keys.forEach((key) => keyMappings[key]?.onKeyUp?.());
+  }, [keyMappings]);
+
+  const visibilityChangeHandler = useCallback(() => {
+    if (document.visibilityState === 'hidden') {
+      releaseAllHandler();
+    }
+  }, [releaseAllHandler]);
+
   useEffect(() => {
     document.addEventListener('keydown', keyDownHandler);
     document.addEventListener('keyup', keyUpHandler);
+    window.addEventListener('blur', releaseAllHandler);
+    document.addEventListener('visibilitychange', visibilityChangeHandler);
     return () => {
       document.removeEventListener('keydown', keyDownHandler);
       document.removeEventListener('keyup', keyUpHandler);
+      window.removeEventListener('blur', releaseAllHandler);
+      document.removeEventListener('visibilitychange', visibilityChangeHandler);
     };
-  }, [keyDownHandler, keyUpHandler]);
+  }, [
+    keyDownHandler,
+    keyUpHandler,
+    releaseAllHandler,
+    visibilityChangeHandler,
+  ]);
 }
