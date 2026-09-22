@@ -89,9 +89,6 @@ export function playSynth({
   gainControl.gain.exponentialRampToValueAtTime(0.001, currentTime + duration);
   gainControl.connect(destination);
 
-  // gainControl has no single terminal source node of its own (its input
-  // oscillators each clean up their own downstream node), so hang its
-  // disconnect off a timeout keyed to the note's total duration instead.
   setTimeout(() => {
     gainControl.disconnect();
   }, duration * 1000);
@@ -210,8 +207,6 @@ export function playKick({
   noiseSource.start(currentTime);
   noiseSource.stop(currentTime + 0.5);
 
-  // Three independent source nodes share the downstream mixer nodes, so only
-  // disconnect once all three have finished.
   let sourcesRemaining = 3;
   const cleanup = () => {
     sourcesRemaining -= 1;
@@ -278,8 +273,6 @@ export function playSnare({
   snareOscillator.stop(currentTime + 0.2);
   snareSource.stop(currentTime + 0.2);
 
-  // Two independent source nodes share gainControl, so only disconnect once
-  // both have finished.
   let sourcesRemaining = 2;
   const cleanup = () => {
     sourcesRemaining -= 1;
@@ -327,8 +320,6 @@ export function playHihat({
   hihatGain.connect(gainControl);
 
   // Oscillators
-  // All oscillators share the downstream filter/gain chain, so only
-  // disconnect it once every oscillator has finished.
   let sourcesRemaining = ratios.length;
   const cleanup = () => {
     sourcesRemaining -= 1;
@@ -389,8 +380,6 @@ export function playCymbal1({
   hihatGain.connect(gainControl);
 
   // Oscillators
-  // All oscillators share the downstream filter/gain chain, so only
-  // disconnect it once every oscillator has finished.
   let sourcesRemaining = ratios.length;
   const cleanup = () => {
     sourcesRemaining -= 1;
@@ -451,8 +440,6 @@ export function playCymbal2({
   hihatGain.connect(gainControl);
 
   // Oscillators
-  // All oscillators share the downstream filter/gain chain, so only
-  // disconnect it once every oscillator has finished.
   let sourcesRemaining = ratios.length;
   const cleanup = () => {
     sourcesRemaining -= 1;
@@ -513,8 +500,6 @@ export function playCymbal3({
   hihatGain.connect(gainControl);
 
   // Oscillators
-  // All oscillators share the downstream filter/gain chain, so only
-  // disconnect it once every oscillator has finished.
   let sourcesRemaining = ratios.length;
   const cleanup = () => {
     sourcesRemaining -= 1;
@@ -678,8 +663,6 @@ export function playTom3({
   noiseSource.start(currentTime);
   noiseSource.stop(currentTime + 1.5);
 
-  // Two independent source nodes (oscillator + noise), so only disconnect
-  // their downstream nodes once both have finished.
   let sourcesRemaining = 2;
   const cleanup = () => {
     sourcesRemaining -= 1;

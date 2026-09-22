@@ -1,18 +1,7 @@
 import { useEffect } from 'react';
 
-// A genuine user gesture is required to unlock audio on Safari/iOS, which
-// (unlike Chrome) does not auto-resume a suspended AudioContext on its own.
 const UNLOCK_EVENTS = ['pointerdown', 'keydown'] as const;
 
-/**
- * Keeps `audioContext` running across the two ways mobile browsers can leave
- * it stuck:
- *  - Never started: resumed on the first real gesture (pointerdown/keydown),
- *    then the listeners are removed so they don't linger for the app's life.
- *  - Interrupted: iOS drops a running context to `'interrupted'` (and
- *    sometimes `'suspended'`) on backgrounding or an incoming call, and does
- *    not recover it by itself — re-resumed once the tab is visible again.
- */
 export function useAudioUnlock(audioContext: AudioContext): void {
   useEffect(() => {
     if (audioContext.state === 'running') {
@@ -39,7 +28,6 @@ export function useAudioUnlock(audioContext: AudioContext): void {
 
   useEffect(() => {
     const resumeIfInterrupted = () => {
-      // 'interrupted' is iOS-specific and missing from TS's AudioContextState.
       const state = audioContext.state as string;
       if (
         document.visibilityState === 'visible' &&
