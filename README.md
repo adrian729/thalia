@@ -33,7 +33,7 @@ npm install
 npm run dev
 ```
 
-Open the printed local URL (default http://localhost:5173/thalia/) and click anywhere to unlock the audio context if prompted.
+Open the printed local URL (default http://localhost:5173/thalia/). The audio context unlocks on the first key press or pointer press (e.g. a pad click) — needed on Safari/iOS, which won't auto-resume it otherwise.
 
 ## Scripts
 
