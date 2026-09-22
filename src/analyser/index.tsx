@@ -71,7 +71,13 @@ export default function Analyser({
             deltaTime: DOMHighResTimeStamp,
             _frameCount: number,
           ) =>
-            draw(canvasCtx, analyser, dataArray as Uint8Array, deltaTime, showFps)
+            draw(
+              canvasCtx,
+              analyser,
+              dataArray as Uint8Array,
+              deltaTime,
+              showFps,
+            )
           }
           fpsRef={fpsRef}
         />

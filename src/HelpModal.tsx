@@ -90,16 +90,16 @@ export default function HelpModal({
         <Section title='How to use'>
           <ul className='list-disc list-inside text-gray-600 flex flex-col gap-1'>
             <li>
-              Press and hold the pad buttons with the mouse, or use the
-              keyboard keys below.
+              Press and hold the pad buttons with the mouse, or use the keyboard
+              keys below.
             </li>
             <li>
               The wave buttons toggle the oscillator types (sine, square,
               sawtooth, triangle) mixed into each note.
             </li>
             <li>
-              The reverb button cycles through impulse responses: off,
-              basement, church, bathroom, pipe.
+              The reverb button cycles through impulse responses: off, basement,
+              church, bathroom, pipe.
             </li>
             <li>
               The three round buttons set the pad&apos;s octave, root note, and

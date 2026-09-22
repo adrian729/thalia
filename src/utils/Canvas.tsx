@@ -51,7 +51,7 @@ export default function Canvas({
     return () => {
       window.cancelAnimationFrame(animationFrameId);
     };
-  }, [draw]);
+  }, [draw, fpsRef]);
 
   return <canvas ref={canvasRef} {...rest} />;
 }
