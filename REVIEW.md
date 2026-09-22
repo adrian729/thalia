@@ -18,6 +18,6 @@ Verified against the current checkout (`e476c11`) via direct file reads, grep, `
 
 8. ~~**Repo doesn't currently pass its own lint.**~~ **DONE.** Ran `pnpm run prettier-format` to fix 5 prettier formatting errors in `HelpModal.tsx:93-94,101-102` and `analyser/index.tsx:74`. Added `fpsRef` to the dependency array in `Canvas.tsx:54` to resolve the `react-hooks/exhaustive-deps` warning (safe to add since `fpsRef` is a stable `RefObject`). Re-ran `pnpm run lint` and confirmed zero errors and zero warnings.
 
-9. **`npm audit` currently reports 7 vulnerabilities (5 high, 1 moderate, 1 low)** in transitive build-tooling deps (`browserslist`, `postcss`, `nanoid`, `js-yaml`, `brace-expansion`, `@babel/core`, `@humanfs/node`) despite recent "audit fix"/"update pckgs" commits. None ship in the production bundle (dev/build-only), but all 7 are fixable today with a plain `npm audit fix` (verified via `--dry-run`, no `--force` needed). **Fix:** run it.
+9. ~~**`npm audit` currently reports 7 vulnerabilities (5 high, 1 moderate, 1 low)**~~ **DONE.** The vulnerabilities in the npm lockfile were resolved during the project's migration to pnpm. Running `pnpm audit` now reports zero known vulnerabilities. Verified: `pnpm install --frozen-lockfile` succeeds, `pnpm exec tsc -b` builds clean, and `pnpm exec vite build` completes successfully.
 
 10. **`App.tsx:32` has an unresolved TODO** — `// TODO: pass audioContext/state to components and remove the Context` — the author's own note that the Context usage is a stopgap.
