@@ -175,9 +175,11 @@ function ThaliaPadButton({
   destination: AudioNode;
   helperEnabled: boolean;
 }) {
-  const frequency = useMemo(
-    () => notes[midiId + initialMidiId].frequency,
-    [midiId, initialMidiId],
+  const note = notes[midiId + initialMidiId];
+  const frequency = useMemo(() => note.frequency, [note]);
+  const noteLabel = useMemo(
+    () => `${note.name ?? ''}${note.accidental ?? ''}${note.octave ?? ''}`,
+    [note],
   );
 
   const { extraClasses, playingClasses } = configItem;
@@ -329,14 +331,18 @@ function ThaliaPadButton({
   return (
     <button
       type='button'
+      aria-label={noteLabel}
       className={cn([
-        'cursor-pointer w-20 aspect-square rounded-full font-bold text-lg bg-gray-300',
+        'cursor-pointer w-20 aspect-square rounded-full font-bold text-lg bg-gray-300 touch-none select-none',
         extraClasses,
         isPlaying && playingClasses,
       ])}
-      onMouseDown={playOscillators}
-      onMouseUp={stopOscillators}
-      onMouseLeave={stopOscillators}
+      onPointerDown={(event) => {
+        event.currentTarget.setPointerCapture(event.pointerId);
+        playOscillators();
+      }}
+      onPointerUp={stopOscillators}
+      onPointerCancel={stopOscillators}
     >
       {helperEnabled && `${keys[0]}`}
     </button>

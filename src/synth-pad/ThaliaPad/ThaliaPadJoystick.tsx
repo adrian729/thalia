@@ -1,7 +1,6 @@
 import {
   Dispatch,
   SetStateAction,
-  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -176,31 +175,6 @@ export function ThaliaPadJoystick({
     setPitchCoords(pitchCoordsFromPressedArrowKeys(pressedArrowKeys));
   }, [pressedArrowKeys]);
 
-  const mouseMoveHandler = useCallback(
-    (event: MouseEvent) => {
-      if (isDragging) {
-        const { clientX, clientY } = event;
-        setPitchCoords(
-          clientCoordsToPitchCoords({ x: clientX, y: clientY }, containerBox),
-        );
-      }
-    },
-    [containerBox, isDragging],
-  );
-
-  const mouseUpHandler = useCallback(() => {
-    setIsDragging(false);
-  }, []);
-
-  useEffect(() => {
-    document.addEventListener('mousemove', mouseMoveHandler);
-    document.addEventListener('mouseup', mouseUpHandler);
-    return () => {
-      document.removeEventListener('mousemove', mouseMoveHandler);
-      document.removeEventListener('mouseup', mouseUpHandler);
-    };
-  }, [mouseMoveHandler, mouseUpHandler]);
-
   const keyMappings = useMemo(() => {
     return ARROW_KEYS.reduce(
       (acc, key) => {
@@ -232,18 +206,30 @@ export function ThaliaPadJoystick({
     <div className='p-2 w-16 aspect-square rounded-full flex items-center justify-center bg-gray-500/15'>
       <div
         ref={containerRef}
-        className='relative w-full aspect-square rounded-full'
-        onMouseDown={(event) => {
+        className='relative w-full aspect-square rounded-full touch-none select-none'
+        onPointerDown={(event) => {
+          event.currentTarget.setPointerCapture(event.pointerId);
           const { clientX, clientY } = event;
           setPitchCoords(
             clientCoordsToPitchCoords({ x: clientX, y: clientY }, containerBox),
           );
           setIsDragging(true);
         }}
+        onPointerMove={(event) => {
+          if (!isDragging) {
+            return;
+          }
+          const { clientX, clientY } = event;
+          setPitchCoords(
+            clientCoordsToPitchCoords({ x: clientX, y: clientY }, containerBox),
+          );
+        }}
+        onPointerUp={() => setIsDragging(false)}
+        onPointerCancel={() => setIsDragging(false)}
       >
         <div
           ref={tipRef}
-          className='absolute w-5 aspect-square rounded-full bg-fuchsia-400'
+          className='absolute w-5 aspect-square rounded-full bg-fuchsia-400 touch-none select-none'
           style={{
             left: `${relativeCoords.x - 0.5 * tipBox.width}px`,
             top: `${relativeCoords.y - 0.5 * tipBox.height}px`,

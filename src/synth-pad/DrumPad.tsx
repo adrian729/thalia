@@ -29,58 +29,68 @@ interface DrumPadConfigItem {
   playingClasses?: ClassValue;
   extraClasses?: ClassValue;
   keys: string[];
+  name: string;
 }
 const drumPadConfig: DrumPadConfigItem[] = [
   {
     playInstrument: playCymbal1,
+    name: 'Cymbal 1',
     extraClasses: 'bg-violet-300',
     playingClasses: 'bg-violet-100',
     keys: ['7'],
   },
   {
     playInstrument: playCymbal2,
+    name: 'Cymbal 2',
     extraClasses: 'bg-indigo-300',
     playingClasses: 'bg-indigo-100',
     keys: ['8'],
   },
   {
     playInstrument: playCymbal3,
+    name: 'Cymbal 3',
     extraClasses: 'bg-red-300',
     playingClasses: 'bg-red-100',
     keys: ['9'],
   },
   {
     playInstrument: playTom1,
+    name: 'Tom 1',
     extraClasses: 'bg-emerald-300',
     playingClasses: 'bg-emerald-100',
     keys: ['4'],
   },
   {
     playInstrument: playTom2,
+    name: 'Tom 2',
     extraClasses: 'bg-lime-300',
     playingClasses: 'bg-lime-100',
     keys: ['5'],
   },
   {
     playInstrument: playTom3,
+    name: 'Tom 3',
     extraClasses: 'bg-yellow-300',
     playingClasses: 'bg-yellow-100',
     keys: ['6'],
   },
   {
     playInstrument: playKick,
+    name: 'Kick',
     extraClasses: 'bg-orange-300',
     playingClasses: 'bg-orange-100',
     keys: ['1'],
   },
   {
     playInstrument: playSnare,
+    name: 'Snare',
     extraClasses: 'bg-sky-300',
     playingClasses: 'bg-sky-100',
     keys: ['2'],
   },
   {
     playInstrument: playHihat,
+    name: 'Hi-hat',
     extraClasses: 'bg-pink-300',
     playingClasses: 'bg-pink-100',
     keys: ['3'],
@@ -136,7 +146,8 @@ function DrumPadButton({
 }) {
   const [isPlaying, setIsPlaying] = useState(false);
 
-  const { playInstrument, keys, extraClasses, playingClasses } = configItem;
+  const { playInstrument, keys, extraClasses, playingClasses, name } =
+    configItem;
 
   const keyMappings = useMemo(() => {
     return keys.reduce(
@@ -164,12 +175,14 @@ function DrumPadButton({
   return (
     <button
       type='button'
+      aria-label={name}
       className={cn([
-        'cursor-pointer w-full aspect-square bg-gray-300 rounded',
+        'cursor-pointer w-full aspect-square bg-gray-300 rounded touch-none select-none',
         extraClasses,
         isPlaying && playingClasses,
       ])}
-      onMouseDown={() => {
+      onPointerDown={(event) => {
+        event.currentTarget.setPointerCapture(event.pointerId);
         setIsPlaying(true);
         if (!audioContext || !destination) return;
         playInstrument({
@@ -177,10 +190,10 @@ function DrumPadButton({
           destination,
         });
       }}
-      onMouseUp={() => {
+      onPointerUp={() => {
         setIsPlaying(false);
       }}
-      onMouseLeave={() => {
+      onPointerCancel={() => {
         setIsPlaying(false);
       }}
     ></button>
