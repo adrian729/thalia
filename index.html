@@ -5,7 +5,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Thalia is a browser-based synth pad and drum pad playground built with the Web Audio API, with keyboard-mapped notes, convolution reverb, and a live audio analyser." />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'" />
+  <!-- style-src needs 'unsafe-inline': Vite's dev server injects CSS via inline <style> tags for HMR (only the production build emits a linked stylesheet). -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'" />
   <link rel="icon" type="image/svg+xml" href="/icon.svg" />
   <title>Thalia</title>
 </head>
