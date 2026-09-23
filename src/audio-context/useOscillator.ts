@@ -115,9 +115,13 @@ export function useOscillator({
 
   useEffect(() => {
     if (oscillatorRef.current) {
-      oscillatorRef.current.detune.setValueAtTime(
+      const detuneParam = oscillatorRef.current.detune;
+      // Ramp instead of stepping: an instant setValueAtTime here causes
+      // audible zipper noise during fast changes (e.g. joystick drags).
+      detuneParam.setValueAtTime(detuneParam.value, audioContext.currentTime);
+      detuneParam.linearRampToValueAtTime(
         detune,
-        audioContext.currentTime,
+        audioContext.currentTime + ATTACK,
       );
     }
   }, [detune, audioContext]);
