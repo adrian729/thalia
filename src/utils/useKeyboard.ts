@@ -12,6 +12,12 @@ export default function useKeyboard({ keyMappings }: UseKeyboardProps) {
 
   const keyDownHandler = useCallback(
     (event: KeyboardEvent) => {
+      // Modals (e.g. HelpModal) don't stop propagation, so suppress pad
+      // key handling ourselves while one is open, rather than threading
+      // an enabled flag through every pad.
+      if (document.querySelector('[role="dialog"][aria-modal="true"]')) {
+        return;
+      }
       const key = event.key.toLowerCase();
       if (pressed.current.has(key)) {
         return;
