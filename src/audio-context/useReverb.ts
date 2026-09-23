@@ -37,7 +37,15 @@ function loadIR(
   if (cached) return cached;
 
   const promise = fetch(path)
-    .then((response) => response.arrayBuffer())
+    .then((response) => {
+      // Fail clearly here instead of letting decodeAudioData choke on an error page body.
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch impulse response at ${path}: ${response.status} ${response.statusText}`,
+        );
+      }
+      return response.arrayBuffer();
+    })
     .then((buffer) => audioContext.decodeAudioData(buffer));
 
   irCache.set(path, promise);
@@ -102,8 +110,6 @@ export function useReverb({
 
   const setSelectedIR = useCallback(
     async (selectedIR: IRType) => {
-      console.info('Setting selected IR:', selectedIR);
-
       latestRequestedIRRef.current = selectedIR;
 
       try {
@@ -128,6 +134,25 @@ export function useReverb({
   useEffect(() => {
     setSelectedIR(selectedIR);
   }, [selectedIR, setSelectedIR]);
+
+  useEffect(() => {
+    // Ramp rather than set directly to avoid an audible click on prop changes.
+    setGainValueAtTime({
+      gain: dryGain,
+      timeElapse: 0.05,
+      gainNode: dryGainRef.current,
+      audioContext,
+    });
+  }, [dryGain, audioContext, dryGainRef]);
+
+  useEffect(() => {
+    setGainValueAtTime({
+      gain: wetGain,
+      timeElapse: 0.05,
+      gainNode: wetGainRef.current,
+      audioContext,
+    });
+  }, [wetGain, audioContext, wetGainRef]);
 
   const setDryGain = useCallback(
     (gain: number) =>
