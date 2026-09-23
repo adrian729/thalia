@@ -11,8 +11,10 @@ function draw(
 ) {
   const fps = 1000 / deltaTime;
 
-  const WIDTH = canvasCtx.canvas.width;
-  const HEIGHT = canvasCtx.canvas.height;
+  // Canvas's backing store is scaled by devicePixelRatio and the context is
+  // pre-scaled to match, so drawing math must use CSS-pixel dimensions here.
+  const WIDTH = canvasCtx.canvas.clientWidth;
+  const HEIGHT = canvasCtx.canvas.clientHeight;
 
   const bufferLength = analyser.fftSize;
 
@@ -67,7 +69,10 @@ export default function Analyser({
       _timestamp: DOMHighResTimeStamp,
       deltaTime: DOMHighResTimeStamp,
       _frameCount: number,
-    ) => draw(canvasCtx, analyser, dataArray as Uint8Array, deltaTime, showFps),
+    ) => {
+      if (!(dataArray instanceof Uint8Array)) return;
+      draw(canvasCtx, analyser, dataArray, deltaTime, showFps);
+    },
     [analyser, dataArray, showFps],
   );
 

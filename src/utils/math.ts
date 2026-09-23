@@ -17,17 +17,6 @@ export function clampMagnitude({ x, y }: Vec2, magnitude: number) {
   return { x: x * fraction, y: y * fraction };
 }
 
-export function translate(
-  translate: Vec2,
-  coordinates: Vec2,
-  origin: Vec2 = { x: 0, y: 0 },
-) {
-  const { x, y } = coordinates;
-  const { x: ox, y: oy } = origin;
-  const { x: dx, y: dy } = translate;
-  return { x: x - ox + dx, y: y - oy + dy };
-}
-
 export function scale(scalar: number, vec2: Vec2) {
   const { x, y } = vec2;
   return {

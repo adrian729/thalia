@@ -49,74 +49,50 @@ export const ACCIDENTAL_CLASSES = [
 // 12 / 13 / 14 / 15 / 16 / 17 / 18 / 19 / 20 / 21 / 22 / 23 / 24
 export const THALIA_CONFIG_ITEMS: ThaliaPadConfigItem[] = [
   {
-    id: 0,
-    scaleValue: 1,
     extraClasses: 'bg-red-300',
     playingClasses: 'bg-red-100',
   },
   {
-    id: 1,
-    scaleValue: -2,
     extraClasses: 'bg-orange-300',
     playingClasses: 'bg-orange-100',
   },
   {
-    id: 2,
-    scaleValue: 2,
     extraClasses: 'bg-amber-300',
     playingClasses: 'bg-amber-100',
   },
   {
-    id: 3,
-    scaleValue: -3,
     extraClasses: 'bg-yellow-300',
     playingClasses: 'bg-yellow-100',
   },
   {
-    id: 4,
-    scaleValue: 3,
     extraClasses: 'bg-lime-300',
     playingClasses: 'bg-lime-100',
   },
   {
-    id: 5,
-    scaleValue: 4,
     extraClasses: 'bg-green-300',
     playingClasses: 'bg-green-100',
   },
   {
-    id: 6,
-    scaleValue: -5,
     extraClasses: 'bg-emerald-300',
     playingClasses: 'bg-emerald-100',
   },
   {
-    id: 7,
-    scaleValue: 5,
     extraClasses: 'bg-sky-300',
     playingClasses: 'bg-sky-100',
   },
   {
-    id: 8,
-    scaleValue: -6,
     extraClasses: 'bg-indigo-300',
     playingClasses: 'bg-indigo-100',
   },
   {
-    id: 9,
-    scaleValue: 6,
     extraClasses: 'bg-violet-300',
     playingClasses: 'bg-violet-100',
   },
   {
-    id: 10,
-    scaleValue: -7,
     extraClasses: 'bg-purple-300',
     playingClasses: 'bg-purple-100',
   },
   {
-    id: 11,
-    scaleValue: 7,
     extraClasses: 'bg-fuchsia-300',
     playingClasses: 'bg-fuchsia-100',
   },

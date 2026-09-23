@@ -23,11 +23,6 @@ export interface NoteType {
   pianoKey?: number;
 }
 
-export const emptyNote: NoteType = {
-  midiId: -1,
-  frequency: 0,
-};
-
 export const notes: NoteType[] = [
   {
     midiId: 0,
