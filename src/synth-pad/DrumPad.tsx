@@ -155,13 +155,11 @@ function DrumPadButton({
       (acc, key) => {
         acc[key.toLowerCase()] = {
           onKeyDown: () => {
-            if (audioContext && destination) {
-              setIsPlaying(true);
-              playInstrument({
-                audioContext,
-                destination: destination,
-              });
-            }
+            setIsPlaying(true);
+            playInstrument({
+              audioContext,
+              destination: destination,
+            });
           },
           onKeyUp: () => setIsPlaying(false),
         };
@@ -185,7 +183,6 @@ function DrumPadButton({
       onPointerDown={(event) => {
         event.currentTarget.setPointerCapture(event.pointerId);
         setIsPlaying(true);
-        if (!audioContext || !destination) return;
         playInstrument({
           audioContext,
           destination,

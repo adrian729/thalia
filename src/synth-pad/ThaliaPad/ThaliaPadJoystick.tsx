@@ -80,7 +80,7 @@ function relativeCoordsToPitchCoords(relativeCoords: Vec2, container: Box) {
   const squareSize = 2;
   const { x, y } = relativeCoords;
   return mapCircleToSquare(
-    { x: x - 0.5 * width, y: -y + 0.5 * width },
+    { x: x - 0.5 * width, y: -y + 0.5 * height },
     radius,
     squareSize,
   );
