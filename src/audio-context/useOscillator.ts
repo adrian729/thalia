@@ -40,8 +40,6 @@ export function useOscillator({
   const oscillatorRef = useRef<OscillatorNode | null>(null);
   const gainNodeRef = useRef<GainNode | null>(null);
 
-  // Read by start() so a joystick drag (which updates detune every pointermove)
-  // doesn't give start a new identity and cascade listener teardowns downstream.
   const detuneRef = useRef(detune);
   detuneRef.current = detune;
 
@@ -116,8 +114,6 @@ export function useOscillator({
   useEffect(() => {
     if (oscillatorRef.current) {
       const detuneParam = oscillatorRef.current.detune;
-      // Ramp instead of stepping: an instant setValueAtTime here causes
-      // audible zipper noise during fast changes (e.g. joystick drags).
       detuneParam.setValueAtTime(detuneParam.value, audioContext.currentTime);
       detuneParam.linearRampToValueAtTime(
         detune,

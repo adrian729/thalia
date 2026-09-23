@@ -38,7 +38,6 @@ function loadIR(
 
   const promise = fetch(path)
     .then((response) => {
-      // Fail clearly here instead of letting decodeAudioData choke on an error page body.
       if (!response.ok) {
         throw new Error(
           `Failed to fetch impulse response at ${path}: ${response.status} ${response.statusText}`,
@@ -136,7 +135,6 @@ export function useReverb({
   }, [selectedIR, setSelectedIR]);
 
   useEffect(() => {
-    // Ramp rather than set directly to avoid an audible click on prop changes.
     setGainValueAtTime({
       gain: dryGain,
       timeElapse: 0.05,

@@ -15,7 +15,6 @@ export default function Canvas({
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const renderTimestampRef = useRef<DOMHighResTimeStamp | undefined>(undefined);
-  // Lazy init: avoids calling performance.now() on every render.
   if (renderTimestampRef.current === undefined) {
     renderTimestampRef.current = performance.now();
   }
@@ -28,7 +27,6 @@ export default function Canvas({
       return;
     }
 
-    // Back the canvas with dpr-scaled pixels but keep drawing in CSS pixel coordinates.
     const dpr = window.devicePixelRatio || 1;
     const displayWidth = canvas.clientWidth;
     const displayHeight = canvas.clientHeight;

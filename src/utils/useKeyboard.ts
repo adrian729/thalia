@@ -12,9 +12,6 @@ export default function useKeyboard({ keyMappings }: UseKeyboardProps) {
 
   const keyDownHandler = useCallback(
     (event: KeyboardEvent) => {
-      // Modals (e.g. HelpModal) don't stop propagation, so suppress pad
-      // key handling ourselves while one is open, rather than threading
-      // an enabled flag through every pad.
       if (document.querySelector('[role="dialog"][aria-modal="true"]')) {
         return;
       }
@@ -40,9 +37,6 @@ export default function useKeyboard({ keyMappings }: UseKeyboardProps) {
     [keyMappings],
   );
 
-  // Losing focus means the matching keyup is never delivered to this document,
-  // so held keys would stay "pressed" forever: the note keeps sounding and the
-  // next keydown for that key is swallowed by the guard above.
   const releaseAllHandler = useCallback(() => {
     if (pressed.current.size === 0) {
       return;
