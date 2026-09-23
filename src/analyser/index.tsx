@@ -2,6 +2,17 @@ import { useCallback, useRef } from 'react';
 import Canvas from '../utils/Canvas';
 import useAnalyser from './useAnalyser';
 
+const TRIGGER_MIDLINE = 128;
+
+function findTriggerIndex(dataArray: Uint8Array, searchLimit: number): number {
+  for (let i = 1; i < searchLimit; i++) {
+    if (dataArray[i - 1] < TRIGGER_MIDLINE && dataArray[i] >= TRIGGER_MIDLINE) {
+      return i;
+    }
+  }
+  return 0;
+}
+
 function draw(
   canvasCtx: CanvasRenderingContext2D,
   analyser: AnalyserNode,
@@ -11,14 +22,13 @@ function draw(
 ) {
   const fps = 1000 / deltaTime;
 
-  // Canvas's backing store is scaled by devicePixelRatio and the context is
-  // pre-scaled to match, so drawing math must use CSS-pixel dimensions here.
   const WIDTH = canvasCtx.canvas.clientWidth;
   const HEIGHT = canvasCtx.canvas.clientHeight;
 
-  const bufferLength = analyser.fftSize;
-
   analyser.getByteTimeDomainData(dataArray);
+
+  const displaySamples = Math.floor(dataArray.length / 2);
+  const triggerIndex = findTriggerIndex(dataArray, displaySamples);
 
   // sky-300, matching the pad button palette
   canvasCtx.fillStyle = 'rgb(125 211 252)';
@@ -29,11 +39,11 @@ function draw(
   canvasCtx.strokeStyle = 'rgb(12 74 110)';
 
   canvasCtx.beginPath();
-  for (let i = 0; i < bufferLength; i++) {
-    const v = dataArray[i] / 128.0;
+  for (let i = 0; i < displaySamples; i++) {
+    const v = dataArray[triggerIndex + i] / 128.0;
     const y = (v * HEIGHT) / 2;
 
-    const x = (i * WIDTH) / bufferLength;
+    const x = (i * WIDTH) / displaySamples;
     if (i === 0) {
       canvasCtx.moveTo(x, y);
     } else {
